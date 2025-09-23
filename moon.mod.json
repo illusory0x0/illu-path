@@ -1,9 +1,20 @@
 {
-  "name": "username/hello",
+  "name": "illusory0x0/path",
   "version": "0.1.0",
   "readme": "README.md",
   "repository": "",
   "license": "Apache-2.0",
-  "keywords": [],
-  "description": ""
+  "keywords": [
+    "path",
+    "filepath",
+    "filesystem",
+    "cross-platform",
+    "unix",
+    "windows",
+    "parsing",
+    "file-handling",
+    "path-manipulation",
+    "directory"
+  ],
+  "description": "A cross-platform path manipulation library for MoonBit that provides robust handling of both Unix and Windows file system paths with automatic format detection and type-safe path operations."
 }
