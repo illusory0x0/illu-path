@@ -7,7 +7,7 @@ pub impl Show for Path with output(self, logger) {
 }
 
 ///|
-pub fn Path::parse(s : String) -> Path raise {
+pub fn Path::parse(s : StringView) -> Path raise {
   if s.is_empty() {
     raise Failure("Empty path string")
   }
@@ -23,7 +23,7 @@ pub fn Path::parse(s : String) -> Path raise {
 ///|
 /// Check if a path string is a Windows path
 /// Windows paths start with a drive letter followed by a colon (e.g., "C:", "D:\\")
-fn is_windows_path(s : String) -> Bool {
+fn is_windows_path(s : StringView) -> Bool {
   if s.length() < 2 {
     return false
   }

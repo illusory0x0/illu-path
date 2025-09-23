@@ -25,12 +25,10 @@ test "UnixPathComponent through Directory iteration" {
 test "panic UnixPathComponent with invalid components" {
   // Test invalid Unix path components (empty strings)
   let invalid_components : Array[String] = ["valid", "", "also_valid"]
-  let result = try? (
-      @path.Directory::from_array(invalid_components) : @path.UnixDirectory)
-  match result {
-    Ok(_) => fail("Expected error for invalid components")
-    Err(_) => () // Expected
-  }
+  // This should abort since from_array uses abort() for invalid components
+  ignore(
+    (@path.Directory::from_array(invalid_components) : @path.UnixDirectory),
+  )
 }
 
 ///|

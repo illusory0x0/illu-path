@@ -25,12 +25,8 @@ test "WindowsPathComponent through Directory iteration" {
 test "panic WindowsPathComponent with invalid components" {
   // Test invalid Windows path components (reserved names)
   let invalid_components : Array[String] = ["CON", "valid"]
-  let result = try? (
-      @path.Directory::from_array(invalid_components) : @path.WinDirectory)
-  match result {
-    Ok(_) => fail("Expected error for invalid components")
-    Err(_) => () // Expected
-  }
+  // This should abort since from_array uses abort() for invalid components
+  ignore((@path.Directory::from_array(invalid_components) : @path.WinDirectory))
 }
 
 ///|

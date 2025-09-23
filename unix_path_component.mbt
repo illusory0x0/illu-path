@@ -45,7 +45,7 @@ test "UnixPathComponent::is_valid invalid cases" {
 
 ///|
 test "UnixPathComponent::from valid case" {
-  let component = UnixPathComponent::from("valid-name")
+  let _component = UnixPathComponent::from("valid-name")
   // Test passes if no exception is raised
   assert_eq(true, true)
 }

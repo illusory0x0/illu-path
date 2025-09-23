@@ -7,12 +7,12 @@
 /// - "archive.tar.gz" -> File { base: "archive.tar", extension: "gz" }
 /// - ".hidden" -> File { base: "", extension: "hidden" }
 pub fn[Component : PlatformPath] File::parse(
-  filename : String,
+  s : StringView,
 ) -> File[Component] raise {
-  if filename.is_empty() {
+  if s.is_empty() {
     raise Failure("Empty filename")
   }
-  let (base, ext) = split_filename(filename)
+  let (base, ext) = split_filename(s.to_string())
   File::{ base: Component::from(base), extension: ext }
 }
 

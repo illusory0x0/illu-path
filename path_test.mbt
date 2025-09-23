@@ -7,10 +7,7 @@ test "Path::parse Windows paths" {
     @path.WPath(win_path) => {
       inspect(win_path.disk, content="C")
       inspect(win_path.directory.length(), content="0")
-      match win_path.file {
-        Some(_) => fail("Expected no file")
-        None => () // Expected
-      }
+      inspect(win_path.file, content="None")
     }
     _ => fail("Expected Windows path")
   }
@@ -21,10 +18,9 @@ test "Path::parse Windows paths" {
     @path.WPath(win_path) => {
       inspect(win_path.disk, content="D")
       inspect(win_path.directory.length(), content="2")
-      match win_path.file {
-        Some(_) => fail("Expected no file")
-        None => () // Expected
-      }
+      inspect(win_path.directory[0].to_string(), content="Users")
+      inspect(win_path.directory[1].to_string(), content="John")
+      inspect(win_path.file, content="None")
     }
     _ => fail("Expected Windows path")
   }
@@ -35,8 +31,12 @@ test "Path::parse Windows paths" {
     @path.WPath(win_path) => {
       inspect(win_path.disk, content="E")
       inspect(win_path.directory.length(), content="1")
+      inspect(win_path.directory[0].to_string(), content="Documents")
       match win_path.file {
-        Some(file) => inspect(file.extension, content="txt")
+        Some(file) => {
+          inspect(file.base.to_string(), content="readme")
+          inspect(file.extension, content="txt")
+        }
         None => fail("Expected file")
       }
     }
@@ -130,7 +130,7 @@ test "Path edge cases" {
       inspect(unix_path.directory.length(), content="3")
       match unix_path.file {
         Some(_) => fail("Expected no file")
-        None => () // Expected
+        None => () // Expected 
       }
     }
     _ => fail("Expected Unix path")

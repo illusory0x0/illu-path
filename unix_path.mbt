@@ -1,7 +1,7 @@
 ///|
 /// Parse a Unix path string into UnixPath
 /// Format: "/path/to/file.ext" or "/path/to/"
-pub fn UnixPath::parse(s : String) -> UnixPath raise {
+pub fn UnixPath::parse(s : StringView) -> UnixPath raise {
   // Handle root path "/"
   if s == "/" {
     return UnixPath::from(directory=Directory([]))
@@ -11,7 +11,7 @@ pub fn UnixPath::parse(s : String) -> UnixPath raise {
   let path_part = if s.has_prefix("/") {
     s[1:].to_string()
   } else {
-    s // Relative path
+    s.to_string() // Relative path
   }
 
   // Split by forward slash
@@ -47,10 +47,7 @@ pub fn UnixPath::parse(s : String) -> UnixPath raise {
 }
 
 ///|
-pub fn UnixPath::from(
-  directory~ : UnixDirectory,
-  file? : UnixFile,
-) -> UnixPath raise {
+pub fn UnixPath::from(directory~ : UnixDirectory, file? : UnixFile) -> UnixPath {
   UnixPath::{ directory, file }
 }
 
@@ -91,7 +88,9 @@ test "UnixPath Show implementation" {
   inspect(path1.to_string(), content="/")
 
   // Test with directory components
-  let dir_components = ["home", "john", "documents"].map(UnixPathComponent)
+  let dir_components = ["home", "john", "documents"].map(fn(s) {
+    UnixPathComponent(s)
+  })
   let dir = Directory(FixedArray::from_array(dir_components))
   let path2 = UnixPath::from(directory=dir)
   inspect(path2.to_string(), content="/home/john/documents")

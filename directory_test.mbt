@@ -29,12 +29,10 @@ test "UnixDirectory iteration" {
 ///|
 test "panic UnixDirectory with invalid components" {
   let invalid_components : Array[String] = ["valid", "", "also_valid"]
-  let result = try? (
-      @path.Directory::from_array(invalid_components) : @path.UnixDirectory)
-  match result {
-    Ok(_) => fail("Expected error for invalid components")
-    Err(_) => () // Expected
-  }
+  // This should abort since from_array uses abort() for invalid components
+  ignore(
+    (@path.Directory::from_array(invalid_components) : @path.UnixDirectory),
+  )
 }
 
 ///|
@@ -55,12 +53,8 @@ test "WinDirectory empty directory" {
 ///|
 test "panic WinDirectory with invalid components" {
   let invalid_components : Array[String] = ["CON", "valid"]
-  let result = try? (
-      @path.Directory::from_array(invalid_components) : @path.WinDirectory)
-  match result {
-    Ok(_) => fail("Expected error for invalid components")
-    Err(_) => () // Expected
-  }
+  // This should abort since from_array uses abort() for invalid components
+  ignore((@path.Directory::from_array(invalid_components) : @path.WinDirectory))
 }
 
 ///|

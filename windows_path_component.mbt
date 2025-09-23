@@ -96,7 +96,7 @@ test "WindowsPathComponent::is_valid invalid cases" {
 
 ///|
 test "WindowsPathComponent::from valid case" {
-  let component = WindowsPathComponent::from("valid-name")
+  let _component = WindowsPathComponent::from("valid-name")
   // Test passes if no exception is raised
   assert_eq(true, true)
 }

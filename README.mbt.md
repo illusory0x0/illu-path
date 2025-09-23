@@ -42,13 +42,13 @@ test "basic usage" {
 test "path parsing examples" {
   // Unix paths
   let unix_file = @path.Path::parse("/etc/config/settings.conf")
-  let unix_dir = @path.Path::parse("/home/user/documents")
-  let unix_root = @path.Path::parse("/")
+  let _unix_dir = @path.Path::parse("/home/user/documents")
+  let _unix_root = @path.Path::parse("/")
 
   // Windows paths
   let win_file = @path.Path::parse("D:\\Documents\\readme.txt")
-  let win_dir = @path.Path::parse("C:\\Program Files\\MyApp")
-  let win_root = @path.Path::parse("E:")
+  let _win_dir = @path.Path::parse("C:\\Program Files\\MyApp")
+  let _win_root = @path.Path::parse("E:")
 
   // Relative paths (treated as Unix by default)
   let relative = @path.Path::parse("relative/path/file.txt")
@@ -111,14 +111,14 @@ The library automatically detects Windows paths by looking for drive letter patt
 test "platform detection" {
   // These are detected as Windows paths
   let win1 = @path.Path::parse("C:")
-  let win2 = @path.Path::parse("D:\\folder")
-  let win3 = @path.Path::parse("z:\\file.txt")
+  let _win2 = @path.Path::parse("D:\\folder")
+  let _win3 = @path.Path::parse("z:\\file.txt")
 
   // These are detected as Unix paths
   let unix1 = @path.Path::parse("/")
-  let unix2 = @path.Path::parse("/home")
-  let unix3 = @path.Path::parse("relative/path")
-  let unix4 = @path.Path::parse("file.txt")
+  let _unix2 = @path.Path::parse("/home")
+  let _unix3 = @path.Path::parse("relative/path")
+  let _unix4 = @path.Path::parse("file.txt")
 
   // Verify detection
   match (win1, unix1) {

@@ -1,7 +1,7 @@
 ///|
 /// Parse a Windows path string into WinPath
 /// Format: "C:\path\to\file.ext" or "C:\path\to\"
-pub fn WinPath::parse(s : String) -> WinPath raise {
+pub fn WinPath::parse(s : StringView) -> WinPath raise {
   if s.length() < 2 {
     raise Failure("Invalid Windows path: too short")
   }
@@ -173,7 +173,9 @@ test "WinPath Show implementation" {
   inspect(path1.to_string(), content="C:\\")
 
   // Test with directory components
-  let dir_components = ["Users", "John", "Documents"].map(WindowsPathComponent)
+  let dir_components = ["Users", "John", "Documents"].map(fn(s) {
+    WindowsPathComponent(s)
+  })
   let dir = Directory(FixedArray::from_array(dir_components))
   let path2 = WinPath::from(disk='D', directory=dir)
   inspect(path2.to_string(), content="D:\\Users\\John\\Documents")

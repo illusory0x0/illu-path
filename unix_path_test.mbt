@@ -29,7 +29,7 @@ test "UnixPath::parse basic functionality" {
 ///|
 test "UnixPath::from constructor" {
   let dir_components : Array[String] = ["home", "user"]
-  let directory : @path.UnixDirectory = @path.Directory::from_array(
+  let _directory : @path.UnixDirectory = @path.Directory::from_array(
     dir_components,
   )
   // Cannot create UnixFile directly as component type is opaque
