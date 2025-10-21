@@ -1,11 +1,8 @@
 ///|
-pub struct File[Component] {
-  base : Component
-  extension : String
+pub(all) enum Path {
+  WPath(WinPath)
+  UPath(UnixPath)
 } derive(ToJson, Hash, Eq)
-
-///|
-struct Directory[Component](FixedArray[Component]) derive(ToJson, Hash, Eq)
 
 ///|
 pub struct WinPath {
@@ -21,16 +18,10 @@ pub struct UnixPath {
 } derive(ToJson, Hash, Eq)
 
 ///|
-pub(all) enum Path {
-  WPath(WinPath)
-  UPath(UnixPath)
+pub struct File[Component] {
+  base : Component
+  extension : String
 } derive(ToJson, Hash, Eq)
-
-///|
-struct WinPathComponent(String) derive(ToJson, Hash, Eq)
-
-///|
-struct UnixPathComponent(String) derive(ToJson, Hash, Eq)
 
 ///|
 pub typealias Directory[WinPathComponent] as WinDirectory
@@ -43,6 +34,15 @@ pub typealias File[WinPathComponent] as WinFile
 
 ///|
 pub typealias File[UnixPathComponent] as UnixFile
+
+///|
+struct Directory[Component](FixedArray[Component]) derive(ToJson, Hash, Eq)
+
+///|
+struct WinPathComponent(String) derive(ToJson, Hash, Eq)
+
+///|
+struct UnixPathComponent(String) derive(ToJson, Hash, Eq)
 
 ///|
 trait PlatformPath {
