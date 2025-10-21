@@ -27,19 +27,19 @@ pub(all) enum Path {
 } derive(ToJson, Hash, Eq)
 
 ///|
-struct WindowsPathComponent(String) derive(ToJson, Hash, Eq)
+struct WinPathComponent(String) derive(ToJson, Hash, Eq)
 
 ///|
 struct UnixPathComponent(String) derive(ToJson, Hash, Eq)
 
 ///|
-pub typealias Directory[WindowsPathComponent] as WinDirectory
+pub typealias Directory[WinPathComponent] as WinDirectory
 
 ///|
 pub typealias Directory[UnixPathComponent] as UnixDirectory
 
 ///|
-pub typealias File[WindowsPathComponent] as WinFile
+pub typealias File[WinPathComponent] as WinFile
 
 ///|
 pub typealias File[UnixPathComponent] as UnixFile
