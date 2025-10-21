@@ -1,12 +1,4 @@
 ///|
-pub impl PlatformPath for WinPathComponent with from(s) {
-  if not(WinPathComponent::is_system_call_valid(s)) {
-    raise Failure("Invalid Windows path component: \{s}")
-  }
-  WinPathComponent(s)
-}
-
-///|
 /// 1. `<`, `>`, `:`, `"`, `|`, `?`, `*`, `\`, `/` characters are not allowed
 /// 2. Component cannot be empty
 /// 3. reserved names (CON, PRN, AUX, NUL, COM1-COM9, LPT1-LPT9) are not allowed (case insensitive)
@@ -50,4 +42,37 @@ pub impl PlatformPath for WinPathComponent with is_system_call_valid(s) {
     }
   }
   true
+}
+
+///|
+/// 1. `\0` null character is not allowed
+/// 2. `/` forward slash is not allowed
+/// 3. Component cannot be empty
+pub impl PlatformPath for UnixPathComponent with is_system_call_valid(s) {
+  if s.is_empty() {
+    return false
+  }
+  for i = 0; i < s.length(); i = i + 1 {
+    let char_code = s[i]
+    if char_code == 0 || char_code == '/'.to_int() {
+      return false
+    }
+  }
+  true
+}
+
+///|
+pub impl PlatformPath for WinPathComponent with from(s) {
+  if not(WinPathComponent::is_system_call_valid(s)) {
+    raise Failure("Invalid Windows path component: \{s}")
+  }
+  WinPathComponent(s)
+}
+
+///|
+pub impl PlatformPath for UnixPathComponent with from(s) {
+  if not(UnixPathComponent::is_system_call_valid(s)) {
+    raise Failure("Invalid Unix path component: \{s}")
+  }
+  UnixPathComponent(s)
 }
