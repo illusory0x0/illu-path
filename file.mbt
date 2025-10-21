@@ -1,11 +1,4 @@
 ///|
-/// Parse a filename string into a File object
-/// Splits the filename at the last dot to separate base name and extension
-/// Examples:
-/// - "readme.txt" -> File { base: "readme", extension: "txt" }
-/// - "config" -> File { base: "config", extension: "" }
-/// - "archive.tar.gz" -> File { base: "archive.tar", extension: "gz" }
-/// - ".hidden" -> File { base: "", extension: "hidden" }
 pub fn[Component : PlatformPath] File::parse(
   s : StringView,
 ) -> File[Component] raise {
