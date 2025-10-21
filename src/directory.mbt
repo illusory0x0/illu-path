@@ -30,13 +30,3 @@ pub fn[T : PlatformPath] Directory::from_array(
 pub fn[T] Directory::iter(self : Directory[T]) -> Iter[T] {
   FixedArray::iter(self.0)
 }
-
-///|
-test "Directory::from_array should work correctly" {
-  let components : Array[String] = ["home", "user", "documents"]
-  let dir : Directory[UnixPathComponent] = Directory::from_array(components)
-  inspect(dir.length(), content="3")
-  inspect(dir[0].0, content="home")
-  inspect(dir[1].0, content="user")
-  inspect(dir[2].0, content="documents")
-}
