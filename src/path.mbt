@@ -1,12 +1,4 @@
 ///|
-pub impl Show for Path with output(self, logger) {
-  match self {
-    UPath(path) => path.output(logger)
-    WPath(path) => path.output(logger)
-  }
-}
-
-///|
 pub fn Path::parse(s : StringView) -> Path raise {
   if s.is_empty() {
     raise Failure("Empty path string")

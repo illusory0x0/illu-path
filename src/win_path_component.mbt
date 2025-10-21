@@ -51,8 +51,3 @@ pub impl PlatformPath for WinPathComponent with is_system_call_valid(s) {
   }
   true
 }
-
-///|
-pub impl Show for WinPathComponent with output(self, logger) {
-  logger.write_string(self.0)
-}

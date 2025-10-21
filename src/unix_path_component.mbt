@@ -22,8 +22,3 @@ pub impl PlatformPath for UnixPathComponent with is_system_call_valid(s) {
   }
   true
 }
-
-///|
-pub impl Show for UnixPathComponent with output(self, logger) {
-  logger.write_string(self.0)
-}

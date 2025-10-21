@@ -37,27 +37,3 @@ pub fn UnixPath::parse(s : StringView) -> UnixPath raise {
 pub fn UnixPath::from(directory~ : UnixDirectory, file? : UnixFile) -> UnixPath {
   UnixPath::{ directory, file }
 }
-
-///|
-pub impl Show for UnixPath with output(self, logger) {
-  logger.write_char('/')
-  for i = 0; i < self.directory.length(); i = i + 1 {
-    if i > 0 {
-      logger.write_char('/')
-    }
-    self.directory[i].output(logger)
-  }
-  match self.file {
-    Some(file) => {
-      if self.directory.length() > 0 {
-        logger.write_char('/')
-      }
-      file.base.output(logger)
-      if file.extension.length() > 0 {
-        logger.write_char('.')
-        logger.write_string(file.extension)
-      }
-    }
-    None => ()
-  }
-}

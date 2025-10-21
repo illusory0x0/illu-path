@@ -40,16 +40,3 @@ test "Directory::from_array should work correctly" {
   inspect(dir[1].0, content="user")
   inspect(dir[2].0, content="documents")
 }
-
-///|
-pub impl[T : Show] Show for Directory[T] with output(self, logger) {
-  logger.write_char('/')
-  let mut first = true
-  for component in self.iter() {
-    if not(first) {
-      logger.write_char('/')
-    }
-    component.output(logger)
-    first = false
-  }
-}
