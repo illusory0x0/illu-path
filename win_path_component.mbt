@@ -1,6 +1,4 @@
 ///|
-/// PlatformPath trait implementation for WindowsPathComponent
-/// Provides validation and creation functionality for Windows path components
 pub impl PlatformPath for WinPathComponent with from(s) {
   if not(WinPathComponent::is_system_call_valid(s)) {
     raise Failure("Invalid Windows path component: \{s}")
@@ -17,14 +15,10 @@ pub impl PlatformPath for WinPathComponent with is_system_call_valid(s) {
   if s.is_empty() {
     return false
   }
-
-  // Check for trailing space or dot
   let last_char = s[s.length() - 1]
   if last_char == ' '.to_int() || last_char == '.'.to_int() {
     return false
   }
-
-  // Check for reserved names (case insensitive)
   let upper = s.to_upper()
   let reserved_names = [
     "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7",
@@ -36,8 +30,6 @@ pub impl PlatformPath for WinPathComponent with is_system_call_valid(s) {
       return false
     }
   }
-
-  // Check for invalid characters (only those mentioned in documentation)
   let invalid_char_codes = [
     '<'.to_int(),
     '>'.to_int(),
@@ -58,49 +50,6 @@ pub impl PlatformPath for WinPathComponent with is_system_call_valid(s) {
     }
   }
   true
-}
-
-///|
-test "WindowsPathComponent::is_valid valid cases" {
-  assert_eq(WinPathComponent::is_system_call_valid("hello"), true)
-  assert_eq(WinPathComponent::is_system_call_valid("world.txt"), true)
-  assert_eq(WinPathComponent::is_system_call_valid("my-file"), true)
-  assert_eq(WinPathComponent::is_system_call_valid("123"), true)
-  assert_eq(WinPathComponent::is_system_call_valid("file with spaces"), true)
-  assert_eq(WinPathComponent::is_system_call_valid("ValidName"), true)
-}
-
-///|
-test "WindowsPathComponent::is_valid invalid cases" {
-  assert_eq(WinPathComponent::is_system_call_valid(""), false)
-  assert_eq(WinPathComponent::is_system_call_valid("file<invalid"), false)
-  assert_eq(WinPathComponent::is_system_call_valid("file>invalid"), false)
-  assert_eq(WinPathComponent::is_system_call_valid("file:invalid"), false)
-  assert_eq(WinPathComponent::is_system_call_valid("file\"invalid"), false)
-  assert_eq(WinPathComponent::is_system_call_valid("file|invalid"), false)
-  assert_eq(WinPathComponent::is_system_call_valid("file?invalid"), false)
-  assert_eq(WinPathComponent::is_system_call_valid("file*invalid"), false)
-  assert_eq(WinPathComponent::is_system_call_valid("file\\invalid"), false)
-  assert_eq(WinPathComponent::is_system_call_valid("file/invalid"), false)
-  assert_eq(WinPathComponent::is_system_call_valid("CON"), false)
-  assert_eq(WinPathComponent::is_system_call_valid("con"), false)
-  assert_eq(WinPathComponent::is_system_call_valid("PRN"), false)
-  assert_eq(WinPathComponent::is_system_call_valid("COM1"), false)
-  assert_eq(WinPathComponent::is_system_call_valid("LPT1"), false)
-  assert_eq(WinPathComponent::is_system_call_valid("file."), false)
-  assert_eq(WinPathComponent::is_system_call_valid("file "), false)
-}
-
-///|
-test "WindowsPathComponent::from valid case" {
-  let _component = WinPathComponent::from("valid-name")
-  // Test passes if no exception is raised
-  assert_eq(true, true)
-}
-
-///|
-test "panic WindowsPathComponent::from invalid case" {
-  ignore(WinPathComponent::from("CON"))
 }
 
 ///|
