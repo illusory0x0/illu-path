@@ -45,10 +45,7 @@ pub fn WinPath::parse(s : StringView) -> WinPath raise {
         dir_parts_array.push(parts[i])
       }
       let (base, ext) = split_filename(last_part)
-      let file = File::{
-        base: WindowsPathComponent::from(base),
-        extension: ext,
-      }
+      let file = File::{ base: WinPathComponent::from(base), extension: ext }
       (dir_parts_array, Some(file))
     } else {
       // All parts are directories
@@ -57,7 +54,7 @@ pub fn WinPath::parse(s : StringView) -> WinPath raise {
   }
 
   // Create directory components
-  let dir_components = dir_parts.map(WindowsPathComponent::from)
+  let dir_components = dir_parts.map(WinPathComponent::from)
   let directory = Directory(FixedArray::from_array(dir_components))
   match file_opt {
     Some(file) => WinPath::from(disk=drive, directory~, file~)
@@ -174,14 +171,14 @@ test "WinPath Show implementation" {
 
   // Test with directory components
   let dir_components = ["Users", "John", "Documents"].map(fn(s) {
-    WindowsPathComponent(s)
+    WinPathComponent(s)
   })
   let dir = Directory(FixedArray::from_array(dir_components))
   let path2 = WinPath::from(disk='D', directory=dir)
   inspect(path2.to_string(), content="D:\\Users\\John\\Documents")
 
   // Test with file (no extension)
-  let file_base = WindowsPathComponent("readme")
+  let file_base = WinPathComponent("readme")
   let file = File::{ base: file_base, extension: "" }
   let path3 = WinPath::from(disk='E', directory=dir, file~)
   inspect(path3.to_string(), content="E:\\Users\\John\\Documents\\readme")
