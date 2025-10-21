@@ -62,28 +62,3 @@ pub fn WinPath::from(
 fn is_valid_drive_letter(c : Char) -> Bool {
   (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
 }
-
-///|
-pub impl Show for WinPath with output(self, logger) {
-  logger.write_char(self.disk)
-  logger.write_string(":\\")
-  for i = 0; i < self.directory.length(); i = i + 1 {
-    if i > 0 {
-      logger.write_char('\\')
-    }
-    self.directory[i].output(logger)
-  }
-  match self.file {
-    Some(file) => {
-      if self.directory.length() > 0 {
-        logger.write_char('\\')
-      }
-      file.base.output(logger)
-      if file.extension.length() > 0 {
-        logger.write_char('.')
-        logger.write_string(file.extension)
-      }
-    }
-    None => ()
-  }
-}
