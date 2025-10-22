@@ -213,3 +213,39 @@ pub(all) suberror ParseError {
   WinParseError(start~ : Int)
   UnixParseError(start~ : Int)
 }
+
+///|
+pub fn WinPath::is_absolute(self : WinPath) -> Bool {
+  self.prefix is Some(_)
+}
+
+///|
+pub fn WinPath::is_relative(self : WinPath) -> Bool {
+  self.prefix is None
+}
+
+///|
+pub fn UnixPath::is_absolute(self : UnixPath) -> Bool {
+  self.is_absolute
+}
+
+///|
+pub fn UnixPath::is_relative(self : UnixPath) -> Bool {
+  !self.is_absolute
+}
+
+///|
+pub fn Path::is_absolute(self : Path) -> Bool {
+  match self {
+    UPath(path) => path.is_absolute()
+    WPath(path) => path.is_absolute()
+  }
+}
+
+///|
+pub fn Path::is_relative(self : Path) -> Bool {
+  match self {
+    UPath(path) => path.is_relative()
+    WPath(path) => path.is_relative()
+  }
+}
