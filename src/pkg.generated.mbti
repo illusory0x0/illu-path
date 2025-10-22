@@ -4,12 +4,14 @@ package "illusory0x0/path"
 // Values
 
 // Errors
+pub(all) suberror ParseError {
+  Win_EndWithSpace(start~ : Int)
+  Win_EndWithPeriod(start~ : Int)
+}
 
 // Types and methods
 type Directory[Component]
 fn[Component : Eq] Directory::equal(Self[Component], Self[Component]) -> Bool // from trait `Eq`
-fn[T : PlatformPath] Directory::from_array(Array[String]) -> Self[T]
-fn[T : PlatformPath] Directory::from_fixed_array(FixedArray[String]) -> Self[T]
 fn[Component : Hash] Directory::hash(Self[Component]) -> Int // from trait `Hash`
 fn[Component : Hash] Directory::hash_combine(Self[Component], Hasher) -> Unit // from trait `Hash`
 fn[T] Directory::iter(Self[T]) -> Iter[T]
@@ -17,12 +19,9 @@ fn[T] Directory::length(Self[T]) -> Int
 #deprecated
 fn[Component : Eq] Directory::op_equal(Self[Component], Self[Component]) -> Bool // from trait `Eq`
 fn[T] Directory::op_get(Self[T], Int) -> T
-fn[T : Show] Directory::output(Self[T], &Logger) -> Unit // from trait `Show`
 fn[Component : ToJson] Directory::to_json(Self[Component]) -> Json // from trait `ToJson`
-fn[T : Show] Directory::to_string(Self[T]) -> String // from trait `Show`
 impl[Component : Eq] Eq for Directory[Component]
 impl[Component : Hash] Hash for Directory[Component]
-impl[T : Show] Show for Directory[T]
 impl[Component : ToJson] ToJson for Directory[Component]
 
 pub struct File[Component] {
@@ -34,13 +33,9 @@ fn[Component : Hash] File::hash(Self[Component]) -> Int // from trait `Hash`
 fn[Component : Hash] File::hash_combine(Self[Component], Hasher) -> Unit // from trait `Hash`
 #deprecated
 fn[Component : Eq] File::op_equal(Self[Component], Self[Component]) -> Bool // from trait `Eq`
-fn[Component : Show] File::output(Self[Component], &Logger) -> Unit // from trait `Show`
-fn[Component : PlatformPath] File::parse(StringView) -> Self[Component] raise
 fn[Component : ToJson] File::to_json(Self[Component]) -> Json // from trait `ToJson`
-fn[Component : Show] File::to_string(Self[Component]) -> String // from trait `Show`
 impl[Component : Eq] Eq for File[Component]
 impl[Component : Hash] Hash for File[Component]
-impl[Component : Show] Show for File[Component]
 impl[Component : ToJson] ToJson for File[Component]
 
 pub(all) enum Path {
@@ -52,13 +47,9 @@ fn Path::hash(Self) -> Int // from trait `Hash`
 fn Path::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
 #deprecated
 fn Path::op_equal(Self, Self) -> Bool // from trait `Eq`
-fn Path::output(Self, &Logger) -> Unit // from trait `Show`
-fn Path::parse(StringView) -> Self raise
 fn Path::to_json(Self) -> Json // from trait `ToJson`
-fn Path::to_string(Self) -> String // from trait `Show`
 impl Eq for Path
 impl Hash for Path
-impl Show for Path
 impl ToJson for Path
 
 pub struct UnixPath {
@@ -66,18 +57,13 @@ pub struct UnixPath {
   file : File[UnixPathComponent]?
 }
 fn UnixPath::equal(Self, Self) -> Bool // from trait `Eq`
-fn UnixPath::from(directory~ : Directory[UnixPathComponent], file? : File[UnixPathComponent]) -> Self
 fn UnixPath::hash(Self) -> Int // from trait `Hash`
 fn UnixPath::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
 #deprecated
 fn UnixPath::op_equal(Self, Self) -> Bool // from trait `Eq`
-fn UnixPath::output(Self, &Logger) -> Unit // from trait `Show`
-fn UnixPath::parse(StringView) -> Self raise
 fn UnixPath::to_json(Self) -> Json // from trait `ToJson`
-fn UnixPath::to_string(Self) -> String // from trait `Show`
 impl Eq for UnixPath
 impl Hash for UnixPath
-impl Show for UnixPath
 impl ToJson for UnixPath
 
 type UnixPathComponent
@@ -86,13 +72,9 @@ fn UnixPathComponent::hash(Self) -> Int // from trait `Hash`
 fn UnixPathComponent::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
 #deprecated
 fn UnixPathComponent::op_equal(Self, Self) -> Bool // from trait `Eq`
-fn UnixPathComponent::output(Self, &Logger) -> Unit // from trait `Show`
 fn UnixPathComponent::to_json(Self) -> Json // from trait `ToJson`
-fn UnixPathComponent::to_string(Self) -> String // from trait `Show`
-impl PlatformPath for UnixPathComponent
 impl Eq for UnixPathComponent
 impl Hash for UnixPathComponent
-impl Show for UnixPathComponent
 impl ToJson for UnixPathComponent
 
 pub struct WinPath {
@@ -101,18 +83,13 @@ pub struct WinPath {
   file : File[WinPathComponent]?
 }
 fn WinPath::equal(Self, Self) -> Bool // from trait `Eq`
-fn WinPath::from(disk~ : Char, directory~ : Directory[WinPathComponent], file? : File[WinPathComponent]) -> Self raise
 fn WinPath::hash(Self) -> Int // from trait `Hash`
 fn WinPath::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
 #deprecated
 fn WinPath::op_equal(Self, Self) -> Bool // from trait `Eq`
-fn WinPath::output(Self, &Logger) -> Unit // from trait `Show`
-fn WinPath::parse(StringView) -> Self raise
 fn WinPath::to_json(Self) -> Json // from trait `ToJson`
-fn WinPath::to_string(Self) -> String // from trait `Show`
 impl Eq for WinPath
 impl Hash for WinPath
-impl Show for WinPath
 impl ToJson for WinPath
 
 type WinPathComponent
@@ -121,13 +98,9 @@ fn WinPathComponent::hash(Self) -> Int // from trait `Hash`
 fn WinPathComponent::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
 #deprecated
 fn WinPathComponent::op_equal(Self, Self) -> Bool // from trait `Eq`
-fn WinPathComponent::output(Self, &Logger) -> Unit // from trait `Show`
 fn WinPathComponent::to_json(Self) -> Json // from trait `ToJson`
-fn WinPathComponent::to_string(Self) -> String // from trait `Show`
-impl PlatformPath for WinPathComponent
 impl Eq for WinPathComponent
 impl Hash for WinPathComponent
-impl Show for WinPathComponent
 impl ToJson for WinPathComponent
 
 pub(all) enum WinPrefix {
