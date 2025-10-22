@@ -78,6 +78,38 @@ pub(all) enum WinPrefix {
 }
 
 ///|
+let windows_reserved_names : FixedArray[String] = [
+  ///
+  "CON", "PRN", "AUX", "NUL",
+  ///
+   "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+  ///
+   "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
+  ///
+   "COM\u00b9", "COM\u00b2", "COM\u00b3",
+  ///
+   "LPT\u00b9", "LPT\u00b2", "LPT\u00b3",
+]
+
+///|
+fn is_windows_reserved_character(ch : Char) -> Bool {
+  match ch {
+    '<'
+    | '>'
+    | ':'
+    | '\"'
+    | '/'
+    | '\\'
+    | '|'
+    | '?'
+    | '*'
+    | '\u0000'
+    | '\u0001'..='\u0031' => true
+    _ => false
+  }
+}
+
+///|
 pub struct UnixPath {
   directory : UnixDirectory
   file : UnixFile?
@@ -105,6 +137,17 @@ pub typealias File[UnixPathComponent] as UnixFile
 struct Directory[Component](FixedArray[Component]) derive(ToJson, Hash, Eq)
 
 ///|
+pub fn[T] Directory::op_get(self : Directory[T], index : Int) -> T = "%fixedarray.get"
+
+///|
+pub fn[T] Directory::length(self : Directory[T]) -> Int = "%fixedarray.length"
+
+///|
+pub fn[T] Directory::iter(self : Directory[T]) -> Iter[T] {
+  FixedArray::iter(self.0)
+}
+
+///|
 struct WinPathComponent(String) derive(ToJson, Hash, Eq)
 
 ///|
@@ -114,4 +157,15 @@ struct UnixPathComponent(String) derive(ToJson, Hash, Eq)
 trait PlatformPath {
   from(s : String) -> Self raise
   is_system_call_valid(s : String) -> Bool
+}
+
+///|
+fn init {
+  ignore(windows_reserved_names)
+}
+
+///|
+pub(all) suberror ParseError {
+  Win_EndWithSpace(start~ : Int)
+  Win_EndWithPeriod(start~ : Int)
 }
