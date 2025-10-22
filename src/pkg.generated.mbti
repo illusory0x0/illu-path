@@ -50,6 +50,8 @@ pub(all) enum Path {
 fn Path::equal(Self, Self) -> Bool // from trait `Eq`
 fn Path::hash(Self) -> Int // from trait `Hash`
 fn Path::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
+fn Path::is_absolute(Self) -> Bool
+fn Path::is_relative(Self) -> Bool
 #deprecated
 fn Path::op_equal(Self, Self) -> Bool // from trait `Eq`
 fn Path::to_json(Self) -> Json // from trait `ToJson`
@@ -65,6 +67,8 @@ pub struct UnixPath {
 fn UnixPath::equal(Self, Self) -> Bool // from trait `Eq`
 fn UnixPath::hash(Self) -> Int // from trait `Hash`
 fn UnixPath::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
+fn UnixPath::is_absolute(Self) -> Bool
+fn UnixPath::is_relative(Self) -> Bool
 #deprecated
 fn UnixPath::op_equal(Self, Self) -> Bool // from trait `Eq`
 fn UnixPath::to_json(Self) -> Json // from trait `ToJson`
@@ -95,6 +99,8 @@ pub struct WinPath {
 fn WinPath::equal(Self, Self) -> Bool // from trait `Eq`
 fn WinPath::hash(Self) -> Int // from trait `Hash`
 fn WinPath::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
+fn WinPath::is_absolute(Self) -> Bool
+fn WinPath::is_relative(Self) -> Bool
 #deprecated
 fn WinPath::op_equal(Self, Self) -> Bool // from trait `Eq`
 fn WinPath::to_json(Self) -> Json // from trait `ToJson`
