@@ -9,7 +9,7 @@ pub(all) enum Path {
 /// [Microsoft Naming Files, Paths, and Namespaces](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file)
 /// [Microsoft Maximum Path Length Limitation](https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation)
 pub struct WinPath {
-  disk : Char
+  prefix : WinPrefix?
   directory : WinDirectory
   file : WinFile?
 } derive(ToJson, Hash, Eq)
@@ -75,7 +75,7 @@ pub(all) enum WinPrefix {
   ///
   /// Warning: this letter is case-insensitive.
   VolumeLetter(Char)
-}
+} derive(ToJson, Hash, Eq)
 
 ///|
 let windows_reserved_names : FixedArray[String] = [
@@ -111,6 +111,7 @@ fn is_windows_reserved_character(ch : Char) -> Bool {
 
 ///|
 pub struct UnixPath {
+  is_absolute : Bool
   directory : UnixDirectory
   file : UnixFile?
 } derive(ToJson, Hash, Eq)
