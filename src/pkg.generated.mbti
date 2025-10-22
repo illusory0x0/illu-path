@@ -4,6 +4,11 @@ package "illusory0x0/path"
 // Values
 
 // Errors
+pub(all) suberror InvalidPathError {
+  Win(start~ : Int, message~ : String)
+  Unix(start~ : Int, message~ : String)
+}
+
 pub(all) suberror ParseError {
   Win_EndWithSpace(start~ : Int)
   Win_EndWithPeriod(start~ : Int)
@@ -72,9 +77,13 @@ fn UnixPathComponent::hash(Self) -> Int // from trait `Hash`
 fn UnixPathComponent::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
 #deprecated
 fn UnixPathComponent::op_equal(Self, Self) -> Bool // from trait `Eq`
+fn UnixPathComponent::output(Self, &Logger) -> Unit // from trait `Show`
 fn UnixPathComponent::to_json(Self) -> Json // from trait `ToJson`
+fn UnixPathComponent::to_string(Self) -> String // from trait `Show`
+impl PlatformPath for UnixPathComponent
 impl Eq for UnixPathComponent
 impl Hash for UnixPathComponent
+impl Show for UnixPathComponent
 impl ToJson for UnixPathComponent
 
 pub struct WinPath {
@@ -98,9 +107,13 @@ fn WinPathComponent::hash(Self) -> Int // from trait `Hash`
 fn WinPathComponent::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
 #deprecated
 fn WinPathComponent::op_equal(Self, Self) -> Bool // from trait `Eq`
+fn WinPathComponent::output(Self, &Logger) -> Unit // from trait `Show`
 fn WinPathComponent::to_json(Self) -> Json // from trait `ToJson`
+fn WinPathComponent::to_string(Self) -> String // from trait `Show`
+impl PlatformPath for WinPathComponent
 impl Eq for WinPathComponent
 impl Hash for WinPathComponent
+impl Show for WinPathComponent
 impl ToJson for WinPathComponent
 
 pub(all) enum WinPrefix {

@@ -155,8 +155,50 @@ struct UnixPathComponent(String) derive(ToJson, Hash, Eq)
 
 ///|
 trait PlatformPath {
-  from(s : String) -> Self raise
-  is_system_call_valid(s : String) -> Bool
+  from(s : String) -> Self raise InvalidPathError
+}
+
+///|
+let windows_reserved_names_set : Set[String] = Set::from_iter(
+  windows_reserved_names.iter(),
+)
+
+///|
+pub impl PlatformPath for WinPathComponent with from(s) {
+  guard !s.is_empty() else {
+    raise Win(start=0, message="empty path component")
+  }
+  guard !windows_reserved_names_set.contains(s) else {
+    raise Win(start=0, message="reserved name")
+  }
+  for i, ch in s {
+    guard !is_windows_reserved_character(ch) else {
+      raise Win(start=i, message="reserved character")
+    }
+    guard ch != '\\' else {
+      raise Win(start=i, message="`\\` in path componnent")
+    }
+  }
+  s
+}
+
+///|
+pub impl PlatformPath for UnixPathComponent with from(s) {
+  guard !s.is_empty() else {
+    raise Unix(start=0, message="empty path component")
+  }
+  guard s.get_char(0) == Some('-') else {
+    raise Unix(start=0, message="not portable in posix standard")
+  }
+  for i, ch in s {
+    guard ch != '/' else {
+      raise Unix(start=i, message="`/` in path component")
+    }
+    guard ch != '\u0000' else {
+      raise Unix(start=i, message="null character in path component")
+    }
+  }
+  s
 }
 
 ///|
@@ -168,4 +210,10 @@ fn init {
 pub(all) suberror ParseError {
   Win_EndWithSpace(start~ : Int)
   Win_EndWithPeriod(start~ : Int)
+}
+
+///|
+pub(all) suberror InvalidPathError {
+  Win(start~ : Int, message~ : String)
+  Unix(start~ : Int, message~ : String)
 }
