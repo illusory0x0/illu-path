@@ -5,13 +5,13 @@ package "illusory0x0/path"
 
 // Errors
 pub(all) suberror InvalidPathError {
-  Win(start~ : Int, message~ : String)
-  Unix(start~ : Int, message~ : String)
+  WinInvalidPath(start~ : Int, message~ : String)
+  UnixInvalidPath(start~ : Int, message~ : String)
 }
 
 pub(all) suberror ParseError {
-  Win_EndWithSpace(start~ : Int)
-  Win_EndWithPeriod(start~ : Int)
+  WinParseError(start~ : Int)
+  UnixParseError(start~ : Int)
 }
 
 // Types and methods
@@ -58,6 +58,7 @@ impl Hash for Path
 impl ToJson for Path
 
 pub struct UnixPath {
+  is_absolute : Bool
   directory : Directory[UnixPathComponent]
   file : File[UnixPathComponent]?
 }
@@ -87,7 +88,7 @@ impl Show for UnixPathComponent
 impl ToJson for UnixPathComponent
 
 pub struct WinPath {
-  disk : Char
+  prefix : WinPrefix?
   directory : Directory[WinPathComponent]
   file : File[WinPathComponent]?
 }
@@ -125,6 +126,15 @@ pub(all) enum WinPrefix {
   UNC(hostname~ : String, shared_folder~ : String)
   VolumeLetter(Char)
 }
+fn WinPrefix::equal(Self, Self) -> Bool // from trait `Eq`
+fn WinPrefix::hash(Self) -> Int // from trait `Hash`
+fn WinPrefix::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
+#deprecated
+fn WinPrefix::op_equal(Self, Self) -> Bool // from trait `Eq`
+fn WinPrefix::to_json(Self) -> Json // from trait `ToJson`
+impl Eq for WinPrefix
+impl Hash for WinPrefix
+impl ToJson for WinPrefix
 
 // Type aliases
 pub typealias Directory[UnixPathComponent] as UnixDirectory
