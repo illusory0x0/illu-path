@@ -166,17 +166,17 @@ let windows_reserved_names_set : Set[String] = Set::from_iter(
 ///|
 pub impl PlatformPath for WinPathComponent with from(s) {
   guard !s.is_empty() else {
-    raise Win(start=0, message="empty path component")
+    raise WinInvalidPath(start=0, message="empty path component")
   }
   guard !windows_reserved_names_set.contains(s) else {
-    raise Win(start=0, message="reserved name")
+    raise WinInvalidPath(start=0, message="reserved name")
   }
   for i, ch in s {
     guard !is_windows_reserved_character(ch) else {
-      raise Win(start=i, message="reserved character")
+      raise WinInvalidPath(start=i, message="reserved character")
     }
     guard ch != '\\' else {
-      raise Win(start=i, message="`\\` in path componnent")
+      raise WinInvalidPath(start=i, message="`\\` in path componnent")
     }
   }
   s
@@ -185,35 +185,30 @@ pub impl PlatformPath for WinPathComponent with from(s) {
 ///|
 pub impl PlatformPath for UnixPathComponent with from(s) {
   guard !s.is_empty() else {
-    raise Unix(start=0, message="empty path component")
+    raise UnixInvalidPath(start=0, message="empty path component")
   }
   guard s.get_char(0) == Some('-') else {
-    raise Unix(start=0, message="not portable in posix standard")
+    raise UnixInvalidPath(start=0, message="not portable in posix standard")
   }
   for i, ch in s {
     guard ch != '/' else {
-      raise Unix(start=i, message="`/` in path component")
+      raise UnixInvalidPath(start=i, message="`/` in path component")
     }
     guard ch != '\u0000' else {
-      raise Unix(start=i, message="null character in path component")
+      raise UnixInvalidPath(start=i, message="null character in path component")
     }
   }
   s
 }
 
 ///|
-fn init {
-  ignore(windows_reserved_names)
+pub(all) suberror InvalidPathError {
+  WinInvalidPath(start~ : Int, message~ : String)
+  UnixInvalidPath(start~ : Int, message~ : String)
 }
 
 ///|
 pub(all) suberror ParseError {
-  Win_EndWithSpace(start~ : Int)
-  Win_EndWithPeriod(start~ : Int)
-}
-
-///|
-pub(all) suberror InvalidPathError {
-  Win(start~ : Int, message~ : String)
-  Unix(start~ : Int, message~ : String)
+  WinParseError(start~ : Int)
+  UnixParseError(start~ : Int)
 }
