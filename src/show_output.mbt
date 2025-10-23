@@ -14,10 +14,6 @@ pub impl Show for UnixPathComponent with output(self, logger) {
 ///|
 pub impl Show for UnixPathComponent with to_string(self) = "%identity"
 
-
-
-
-
 ///|
 pub impl[A : Show] Show for File[A] with output(self, logger) {
   logger.write_object(self.base)
@@ -45,7 +41,7 @@ const VolumePrefix : String =
 
 ///|
 const VolumeSuffix : String =
-  #|}:
+  #|}
 
 ///|
 const DevicePrefix : String =
@@ -61,8 +57,8 @@ const BackSlash : Char = '\\'
 ///|
 pub impl Show for WinPrefix with output(self, logger) {
   match self {
-    Verbatim(symlink="") => logger.write_string(VerbatimPrefix)
-    Verbatim(symlink~) => {
+    Verbatim => logger.write_string(VerbatimPrefix)
+    VerbatimSymlink(symlink~) => {
       logger.write_string(VerbatimPrefix)
       logger.write_string(symlink)
       logger.write_char(BackSlash)
@@ -184,10 +180,7 @@ test "windows path" {
     directory=Directory::new(["folder"]),
   )
   inspect(path, content="\\\\?\\UNC\\server\\share\\folder\\")
-  let path = WinPath::new(
-    prefix=Verbatim(symlink=""),
-    directory=Directory::new(["folder"]),
-  )
+  let path = WinPath::new(prefix=Verbatim, directory=Directory::new(["folder"]))
   inspect(path, content="\\\\?\\folder\\")
   let path = WinPath::new(
     prefix=VerbatimVolumeLetter('D'),
@@ -201,7 +194,7 @@ test "windows path" {
   )
   inspect(
     path,
-    content="\\\\?\\Volume{12345678-1234-1234-1234-1234567890AB}:folder\\",
+    content="\\\\?\\Volume{12345678-1234-1234-1234-1234567890AB}folder\\",
   )
   let path = WinPath::new(
     prefix=DeviceNS(device="COM56"),

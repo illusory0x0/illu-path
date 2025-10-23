@@ -1,17 +1,59 @@
 ///|
-test "parse windows path" {
-  let path = Path::parse("\\folder\\")
-  inspect(path, content="folder\\")
-  let path = Path::parse("C:\\Users")
-  inspect(path, content="C:\\Users")
-  let path = Path::parse("C:\\Users\\username\\main.mbt")
-  inspect(path, content="C:\\Users\\username\\main.mbt")
-  let path = Path::parse("C:\\Users\\username\\main")
-  inspect(path, content="C:\\Users\\username\\main")
-  let path = Path::parse("C:\\Users\\username\\folder\\")
-  inspect(path, content="C:\\Users\\username\\folder\\")
-  let path = Path::parse("\\\\?\\D:\\Pictures\\apple.png")
-  inspect(path, content="\\\\?\\D:\\Pictures\\apple.png")
+test "WinPrefix::Verbatim" {
+  let path = Path::parse("\\\\?\\file")
+  inspect(path, content="\\\\?\\file")
+  let path = Path::parse("\\\\?\\file.txt")
+  inspect(path, content="\\\\?\\file.txt")
+  let path = Path::parse("\\\\?\\folder\\")
+  inspect(path, content="\\\\?\\folder\\")
+}
+
+///|
+test "WinPrefix::VerbatimSymlink" {
+  let path = Path::parse("\\\\?\\GLOBALROOT\\file")
+  inspect(path, content="\\\\?\\GLOBALROOT\\file")
+  let path = Path::parse("\\\\?\\GLOBALROOT\\file.txt")
+  inspect(path, content="\\\\?\\GLOBALROOT\\file.txt")
+  let path = Path::parse("\\\\?\\GLOBALROOT\\folder\\")
+  inspect(path, content="\\\\?\\GLOBALROOT\\folder\\")
+}
+
+///|
+test "WinPrefix::VerbatimUNC" {
+  let path = Path::parse("\\\\?\\UNC\\server\\share\\file")
+  inspect(path, content="\\\\?\\UNC\\server\\share\\file")
+  let path = Path::parse("\\\\?\\UNC\\server\\share\\file.log")
+  inspect(path, content="\\\\?\\UNC\\server\\share\\file.log")
+  let path = Path::parse("\\\\?\\UNC\\server\\share\\folder\\")
+  inspect(path, content="\\\\?\\UNC\\server\\share\\folder\\")
+}
+
+///|
+test "WinPrefix::VerbatimVolumeLetter" {
+  let path = Path::parse("\\\\?\\C:\\file")
+  inspect(path, content="\\\\?\\C:\\file")
+  let path = Path::parse("\\\\?\\C:\\file.md")
+  inspect(path, content="\\\\?\\C:\\file.md")
+  let path = Path::parse("\\\\?\\C:\\folder\\")
+  inspect(path, content="\\\\?\\C:\\folder\\")
+}
+
+///|
+test "WinPrefix::VerbatimVolumeGUID" {
+  let path = Path::parse(
+    "\\\\?\\Volume{12345678-1234-1234-1234-1234567890AB}file",
+  )
+  inspect(
+    path,
+    content="\\\\?\\Volume{12345678-1234-1234-1234-1234567890AB}file",
+  )
+  let path = Path::parse(
+    "\\\\?\\Volume{12345678-1234-1234-1234-1234567890AB}file.png",
+  )
+  inspect(
+    path,
+    content="\\\\?\\Volume{12345678-1234-1234-1234-1234567890AB}file.png",
+  )
   let path = Path::parse(
     "\\\\?\\Volume{12345678-1234-1234-1234-1234567890AB}folder\\",
   )
@@ -19,10 +61,34 @@ test "parse windows path" {
     path,
     content="\\\\?\\Volume{12345678-1234-1234-1234-1234567890AB}folder\\",
   )
+}
+
+///|
+test "WinPrefix::DeviceNS" {
+  let path = Path::parse("\\\\.\\COM56\\file")
+  inspect(path, content="\\\\.\\COM56\\file")
+  let path = Path::parse("\\\\.\\COM56\\file.bin")
+  inspect(path, content="\\\\.\\COM56\\file.bin")
   let path = Path::parse("\\\\.\\COM56\\folder\\")
   inspect(path, content="\\\\.\\COM56\\folder\\")
-  let path = Path::parse(".\\folder\\sub\\")
-  inspect(path, content="folder\\sub\\")
-  let path = Path::parse("\\folder\\sub\\")
-  inspect(path, content="folder\\sub\\")
+}
+
+///|
+test "WinPrefix::UNC" {
+  let path = Path::parse("\\\\server\\share\\file")
+  inspect(path, content="\\\\server\\share\\file")
+  let path = Path::parse("\\\\server\\share\\file.log")
+  inspect(path, content="\\\\server\\share\\file.log")
+  let path = Path::parse("\\\\server\\share\\folder\\")
+  inspect(path, content="\\\\server\\share\\folder\\")
+}
+
+///|
+test "WinPrefix::VolumeLetter" {
+  let path = Path::parse("C:\\file")
+  inspect(path, content="C:\\file")
+  let path = Path::parse("C:\\file.txt")
+  inspect(path, content="C:\\file.txt")
+  let path = Path::parse("C:\\folder\\")
+  inspect(path, content="C:\\folder\\")
 }

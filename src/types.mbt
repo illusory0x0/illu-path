@@ -16,7 +16,7 @@ fn parse_windows_relative_path(
     lexmatch rest with longest {
       ((("[^\\]+" as s) "\\") as all, r) => {
         directory.push(WinPathComponent::from(s, start~))
-        start = all.char_length()
+        start += all.char_length()
         rest = r
       }
       (("[^\\.]+" as base) "\." ("[^\\]+" as extension)) =>
@@ -51,7 +51,7 @@ pub fn Path::parse(s : String) -> Path raise PathError {
       )
       WPath(
         WinPath::new(
-          prefix=Verbatim(symlink=symlink.to_string()),
+          prefix=VerbatimSymlink(symlink=symlink.to_string()),
           directory~,
           file?,
         ),
@@ -75,6 +75,26 @@ pub fn Path::parse(s : String) -> Path raise PathError {
       WPath(
         WinPath::new(
           prefix=VerbatimUNC(
+            hostname=hostname.to_string(),
+            shared_folder=shared_folder.to_string(),
+          ),
+          directory~,
+          file?,
+        ),
+      )
+    }
+    (
+      ("\\\\" ("[^\\]+" as hostname) "\\" ("[^\\]+" as shared_folder) "\\") as prefix,
+      rest
+    ) => {
+      // TODO: check hostname and shared_folder
+      let (directory, file) = parse_windows_relative_path(
+        rest,
+        start=prefix.char_length(),
+      )
+      WPath(
+        WinPath::new(
+          prefix=UNC(
             hostname=hostname.to_string(),
             shared_folder=shared_folder.to_string(),
           ),
@@ -125,7 +145,7 @@ pub fn Path::parse(s : String) -> Path raise PathError {
         rest,
         start=prefix.char_length(),
       )
-      WPath(WinPath::new(directory~, file?))
+      WPath(WinPath::new(prefix=Verbatim, directory~, file?))
     }
     ((("[a-zA-Z]" as letter) ":\\") as prefix, rest) => {
       let (directory, file) = parse_windows_relative_path(
@@ -142,7 +162,7 @@ pub fn Path::parse(s : String) -> Path raise PathError {
       )
       WPath(WinPath::new(directory~, file?))
     }
-    // root path but without derive letter
+    // root path but without derive letter, if at windows root path which parent also is root.
     ("\\\.\." as prefix, rest) => {
       let (directory, file) = parse_windows_relative_path(
         rest,
@@ -166,7 +186,7 @@ pub fn Path::parse(s : String) -> Path raise PathError {
       )
       UPath(UnixPath::new(directory~, file?))
     }
-    // root path 
+    // root path, if at unix root path which parent also is root.
     ("/\.\." as prefix, rest) => {
       let (directory, file) = parse_unix_relative_path(
         rest,
@@ -235,10 +255,14 @@ pub fn WinPath::new(
 /// > relative paths are always limited to a total of MAX_PATH characters.
 /// 
 pub(all) enum WinPrefix {
-  /// Syntax: `\\?\<SYMLINK>\` | `\\?\`
+  /// Syntax: `\\?\`
+  ///
+  /// Example: `\\?\`
+  Verbatim
+  /// Syntax: `\\?\<SYMLINK>\` 
   ///
   /// Example: `\\?\GLOBALROOT\`
-  Verbatim(symlink~ : String)
+  VerbatimSymlink(symlink~ : String)
   /// Syntax: `\\?\UNC\<SERVER>\<SHARE>\`
   ///
   /// Example: `\\?\UNC\server\share\`
