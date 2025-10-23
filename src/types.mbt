@@ -60,9 +60,9 @@ pub(all) enum WinPrefix {
   ///
   /// Example: `\\?\C:\`
   VerbatimVolumeLetter(Char)
-  /// Syntax: `\\?\Volume{<GUID>}\`
+  /// Syntax: `\\?\Volume{<GUID>}`
   ///
-  /// Example: `\\?\Volume{26a21bda-a627-11d7-9931-806e6f6e6963}\`
+  /// Example: `\\?\Volume{26a21bda-a627-11d7-9931-806e6f6e6963}`
   ///
   /// Warning: this letter is case-insensitive.
   ///

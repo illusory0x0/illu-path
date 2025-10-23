@@ -56,7 +56,7 @@ const VolumePrefix : String =
 
 ///|
 const VolumeSuffix : String =
-  #|}:\
+  #|}:
 
 ///|
 const DevicePrefix : String =
@@ -72,6 +72,7 @@ const BackSlash : Char = '\\'
 ///|
 pub impl Show for WinPrefix with output(self, logger) {
   match self {
+    Verbatim(symlink="") => logger.write_string(VerbatimPrefix)
     Verbatim(symlink~) => {
       logger.write_string(VerbatimPrefix)
       logger.write_string(symlink)
@@ -198,7 +199,7 @@ test "windows path" {
     prefix=Verbatim(symlink=""),
     directory=Directory::new(["folder"]),
   )
-  inspect(path, content="\\\\?\\\\folder\\")
+  inspect(path, content="\\\\?\\folder\\")
   let path = WinPath::new(
     prefix=VerbatimVolumeLetter('D'),
     directory=Directory::new(["Pictures"]),
@@ -206,12 +207,12 @@ test "windows path" {
   )
   inspect(path, content="\\\\?\\D:\\Pictures\\apple.png")
   let path = WinPath::new(
-    prefix=VerbatimVolumeGUID("{12345678-1234-1234-1234-1234567890AB}"),
+    prefix=VerbatimVolumeGUID("12345678-1234-1234-1234-1234567890AB"),
     directory=Directory::new(["folder"]),
   )
   inspect(
     path,
-    content="\\\\?\\Volume{{12345678-1234-1234-1234-1234567890AB}}:\\folder\\",
+    content="\\\\?\\Volume{12345678-1234-1234-1234-1234567890AB}:\\folder\\",
   )
   let path = WinPath::new(
     prefix=DeviceNS(device="COM56"),
