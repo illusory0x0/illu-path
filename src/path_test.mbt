@@ -1,11 +1,13 @@
 ///|
-test "WinPrefix::Verbatim" {
-  let path = Path::parse("\\\\?\\file")
+test "WinPrefix::VerbatimRoot" {
+  let path = Path::parse("\\\\?\\\\file")
   inspect(path, content="\\\\?\\file")
-  let path = Path::parse("\\\\?\\file.txt")
+  let path = Path::parse("\\\\?\\\\file.txt")
   inspect(path, content="\\\\?\\file.txt")
-  let path = Path::parse("\\\\?\\folder\\")
+  let path = Path::parse("\\\\?\\\\folder\\")
   inspect(path, content="\\\\?\\folder\\")
+  let path = Path::parse("\\\\?\\\\folder")
+  inspect(path, content="\\\\?\\folder")
 }
 
 ///|
@@ -16,6 +18,8 @@ test "WinPrefix::VerbatimSymlink" {
   inspect(path, content="\\\\?\\GLOBALROOT\\file.txt")
   let path = Path::parse("\\\\?\\GLOBALROOT\\folder\\")
   inspect(path, content="\\\\?\\GLOBALROOT\\folder\\")
+  let path = Path::parse("\\\\?\\GLOBALROOT")
+  inspect(path, content="\\\\?\\GLOBALROOT\\")
 }
 
 ///|
@@ -26,6 +30,8 @@ test "WinPrefix::VerbatimUNC" {
   inspect(path, content="\\\\?\\UNC\\server\\share\\file.log")
   let path = Path::parse("\\\\?\\UNC\\server\\share\\folder\\")
   inspect(path, content="\\\\?\\UNC\\server\\share\\folder\\")
+  let path = Path::parse("\\\\?\\UNC\\server\\share")
+  inspect(path, content="\\\\?\\UNC\\server\\share")
 }
 
 ///|
@@ -36,6 +42,8 @@ test "WinPrefix::VerbatimVolumeLetter" {
   inspect(path, content="\\\\?\\C:\\file.md")
   let path = Path::parse("\\\\?\\C:\\folder\\")
   inspect(path, content="\\\\?\\C:\\folder\\")
+  let path = Path::parse("\\\\?\\C:")
+  inspect(path, content="\\\\?\\C:\\")
 }
 
 ///|
@@ -45,14 +53,14 @@ test "WinPrefix::VerbatimVolumeGUID" {
   )
   inspect(
     path,
-    content="\\\\?\\Volume{12345678-1234-1234-1234-1234567890AB}file",
+    content="\\\\?\\Volume{12345678-1234-1234-1234-1234567890AB}file\\",
   )
   let path = Path::parse(
     "\\\\?\\Volume{12345678-1234-1234-1234-1234567890AB}file.png",
   )
   inspect(
     path,
-    content="\\\\?\\Volume{12345678-1234-1234-1234-1234567890AB}file.png",
+    content="\\\\?\\Volume{12345678-1234-1234-1234-1234567890AB}file.png\\",
   )
   let path = Path::parse(
     "\\\\?\\Volume{12345678-1234-1234-1234-1234567890AB}folder\\",
@@ -61,6 +69,8 @@ test "WinPrefix::VerbatimVolumeGUID" {
     path,
     content="\\\\?\\Volume{12345678-1234-1234-1234-1234567890AB}folder\\",
   )
+  let path = Path::parse("\\\\?\\Volume{12345678-1234-1234-1234-1234567890AB}")
+  inspect(path, content="\\\\?\\Volume{12345678-1234-1234-1234-1234567890AB}\\")
 }
 
 ///|
@@ -81,10 +91,13 @@ test "WinPrefix::UNC" {
   inspect(path, content="\\\\server\\share\\file.log")
   let path = Path::parse("\\\\server\\share\\folder\\")
   inspect(path, content="\\\\server\\share\\folder\\")
+  inspect(path, content="\\\\server\\share")
 }
 
 ///|
 test "WinPrefix::VolumeLetter" {
+  let path = Path::parse("C:\\")
+  inspect(path, content="C:\\")
   let path = Path::parse("C:\\file")
   inspect(path, content="C:\\file")
   let path = Path::parse("C:\\file.txt")
@@ -115,4 +128,6 @@ test "Unix absolute path" {
   inspect(path, content="/folder/file")
   let path = Path::parse("/folder/file")
   inspect(path, content="/folder/file")
+  let path = Path::parse("/")
+  inspect(path, content="/")
 }

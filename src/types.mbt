@@ -51,7 +51,7 @@ pub(all) enum WinPrefix {
   /// Syntax: `\\?\`
   ///
   /// Example: `\\?\`
-  Verbatim
+  VerbatimRoot
   /// Syntax: `\\?\<SYMLINK>\` 
   ///
   /// Example: `\\?\GLOBALROOT\`

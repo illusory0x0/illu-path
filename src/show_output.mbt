@@ -57,7 +57,7 @@ const BackSlash : Char = '\\'
 ///|
 pub impl Show for WinPrefix with output(self, logger) {
   match self {
-    Verbatim => logger.write_string(VerbatimPrefix)
+    VerbatimRoot => logger.write_string(VerbatimPrefix)
     VerbatimSymlink(symlink~) => {
       logger.write_string(VerbatimPrefix)
       logger.write_string(symlink)
@@ -180,7 +180,10 @@ test "windows path" {
     directory=Directory::new(["folder"]),
   )
   inspect(path, content="\\\\?\\UNC\\server\\share\\folder\\")
-  let path = WinPath::new(prefix=Verbatim, directory=Directory::new(["folder"]))
+  let path = WinPath::new(
+    prefix=VerbatimRoot,
+    directory=Directory::new(["folder"]),
+  )
   inspect(path, content="\\\\?\\folder\\")
   let path = WinPath::new(
     prefix=VerbatimVolumeLetter('D'),

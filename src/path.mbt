@@ -51,7 +51,7 @@ fn parse_unix_relative_path(
 ///|
 fn win_path(
   prefix? : WinPrefix,
-  directory~ : WinDirectory,
+  directory? : WinDirectory = [],
   file? : WinFile,
 ) -> Path {
   WPath(WinPath::{ prefix, directory, file })
@@ -60,7 +60,43 @@ fn win_path(
 ///|
 pub fn Path::parse(s : String) -> Path raise PathError {
   lexmatch s with longest {
+    /// without  rest cases 
+    ("\\\\\?\\" ("[^\\]+" as symlink)) =>
+      win_path(prefix=VerbatimSymlink(symlink=symlink.to_string()))
+    ("\\\\\?UNC\\" ("[^\\]+" as hostname) "\\" ("[^\\]+" as shared_folder)) =>
+      win_path(
+        prefix=VerbatimUNC(
+          hostname=hostname.to_string(),
+          shared_folder=shared_folder.to_string(),
+        ),
+      )
+    ("\\\\" ("[^\\]+" as hostname) "\\" ("[^\\]+" as shared_folder) "\\") =>
+      win_path(
+        prefix=UNC(
+          hostname=hostname.to_string(),
+          shared_folder=shared_folder.to_string(),
+        ),
+      )
+    ("\\\\\.\\" ("[^\\]+" as device) "\\") =>
+      win_path(prefix=DeviceNS(device=device.to_string()))
+    ("\\\\\?\\" ("[a-zA-Z]" as letter) ":\\") =>
+      win_path(prefix=VerbatimVolumeLetter(letter))
+    (("[a-zA-Z]" as letter) ":\\") => win_path(prefix=VolumeLetter(letter))
+    "\\\\\?\\\\" => win_path(prefix=VerbatimRoot)
+    ("\\\\\?\\Volume[{]" ("[^}]+" as guid) "[}]") =>
+      win_path(prefix=VerbatimVolumeGUID(guid.to_string()))
+    ("\\\\\?UNC\\" ("[^\\]+" as hostname) "\\" ("[^\\]+" as shared_folder) "\\") =>
+      win_path(
+        prefix=VerbatimUNC(
+          hostname=hostname.to_string(),
+          shared_folder=shared_folder.to_string(),
+        ),
+      )
+
+    // with rest cases 
+
     (("\\\\\?\\" ("[^\\]+" as symlink) "\\") as prefix, rest) => {
+
       // TODO: check symlink name 
       let (directory, file) = parse_windows_relative_path(
         rest,
@@ -72,6 +108,8 @@ pub fn Path::parse(s : String) -> Path raise PathError {
         file?,
       )
     }
+    ("\\\\\?\\Volume[{]" ("[^}]+" as guid) "[}]") =>
+      win_path(prefix=VerbatimVolumeGUID(guid.to_string()))
     (
       (
         "\\\\\?UNC\\"
@@ -136,12 +174,12 @@ pub fn Path::parse(s : String) -> Path raise PathError {
       )
       win_path(prefix=VerbatimVolumeLetter(letter), directory~, file?)
     }
-    ("\\\\\?\\" as prefix, rest) => {
+    ("\\\\\?\\\\" as prefix, rest) => {
       let (directory, file) = parse_windows_relative_path(
         rest,
         start=prefix.char_length(),
       )
-      win_path(prefix=Verbatim, directory~, file?)
+      win_path(prefix=VerbatimRoot, directory~, file?)
     }
     ((("[a-zA-Z]" as letter) ":\\") as prefix, rest) => {
       let (directory, file) = parse_windows_relative_path(
