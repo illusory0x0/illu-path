@@ -417,7 +417,7 @@ let windows_reserved_names_set : Set[StringView] = Set::from_iter(
 ///|
 pub fn WinPathComponent::from(
   s : StringView,
-  start? : Int = 0,
+  start~ : Int,
 ) -> WinPathComponent raise PathError {
   guard !s.is_empty() else {
     raise PathError::PathError(
@@ -484,7 +484,7 @@ pub fn UnixPathComponent::from(
 
 ///|
 pub impl PlatformPath for WinPathComponent with from(s) {
-  WinPathComponent::from(s)
+  WinPathComponent::from(s, start=0)
 }
 
 ///|
