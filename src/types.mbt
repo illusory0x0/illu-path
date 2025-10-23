@@ -35,7 +35,7 @@ fn parse_unix_relative_path(
   start~ : Int,
 ) -> (UnixDirectory, UnixFile?) raise PathError {
   raise PathError::PathError(
-    start=0,
+    start~,
     message="Unix path parsing not implemented: '\{s}'",
   )
 }
@@ -43,14 +43,7 @@ fn parse_unix_relative_path(
 ///|
 pub fn Path::parse(s : String) -> Path raise PathError {
   lexmatch s with longest {
-    ("\\\\\?\\" as prefix, rest) => {
-      let (directory, file) = parse_windows_relative_path(
-        rest,
-        start=prefix.char_length(),
-      )
-      WPath(WinPath::new(directory~, file?))
-    }
-    (("\\\\\?" ("[^\\]+" as symlink) "\\") as prefix, rest) => {
+    (("\\\\\?\\" ("[^\\]+" as symlink) "\\") as prefix, rest) => {
       // TODO: check symlink name 
       let (directory, file) = parse_windows_relative_path(
         rest,
@@ -90,16 +83,7 @@ pub fn Path::parse(s : String) -> Path raise PathError {
         ),
       )
     }
-    (("\\\\\?" ("[a-zA-Z]" as letter) ":\\") as prefix, rest) => {
-      let (directory, file) = parse_windows_relative_path(
-        rest,
-        start=prefix.char_length(),
-      )
-      WPath(
-        WinPath::new(prefix=VerbatimVolumeLetter(letter), directory~, file?),
-      )
-    }
-    (("\\\\\?Volume[{]" ("[^}]+" as guid) "[}]") as prefix, rest) => {
+    (("\\\\\?\\Volume[{]" ("[^}]+" as guid) "[}]") as prefix, rest) => {
       let (directory, file) = parse_windows_relative_path(
         rest,
         start=prefix.char_length(),
@@ -125,6 +109,23 @@ pub fn Path::parse(s : String) -> Path raise PathError {
           file?,
         ),
       )
+    }
+    (("\\\\\?\\" ("[a-zA-Z]" as letter) ":\\") as prefix, rest) => {
+      let (directory, file) = parse_windows_relative_path(
+        rest,
+        start=prefix.char_length(),
+      )
+      WPath(
+        WinPath::new(prefix=VerbatimVolumeLetter(letter), directory~, file?),
+      )
+    }
+    ("\\\\\?\\" as prefix, rest) => {
+      // println("done")
+      let (directory, file) = parse_windows_relative_path(
+        rest,
+        start=prefix.char_length(),
+      )
+      WPath(WinPath::new(directory~, file?))
     }
     ((("[a-zA-Z]" as letter) ":\\") as prefix, rest) => {
       let (directory, file) = parse_windows_relative_path(
