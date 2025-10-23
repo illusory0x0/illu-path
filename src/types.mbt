@@ -15,6 +15,15 @@ pub struct WinPath {
 } derive(ToJson, Hash, Eq)
 
 ///|
+pub fn WinPath::new(
+  prefix? : WinPrefix,
+  directory~ : WinDirectory,
+  file? : WinFile,
+) -> WinPath {
+  WinPath::{ prefix, directory, file }
+}
+
+///|
 /// 
 /// #### Verbatim Prefix
 /// 
@@ -120,10 +129,27 @@ pub struct UnixPath {
 } derive(ToJson, Hash, Eq)
 
 ///|
+pub fn UnixPath::new(
+  is_absolute? : Bool = false,
+  directory~ : UnixDirectory,
+  file? : UnixFile,
+) -> UnixPath {
+  UnixPath::{ is_absolute, directory, file }
+}
+
+///|
 pub struct File[Component] {
   base : Component
-  extension : String
+  extension : Component
 } derive(ToJson, Hash, Eq)
+
+///|
+pub fn[A : PlatformPath] File::new(
+  base~ : String,
+  extension~ : String,
+) -> File[A] raise InvalidPathError {
+  File::{ base: A::from(base), extension: A::from(extension) }
+}
 
 ///|
 pub typealias Directory[WinPathComponent] as WinDirectory
@@ -141,6 +167,13 @@ pub typealias File[UnixPathComponent] as UnixFile
 struct Directory[Component](FixedArray[Component]) derive(ToJson, Hash, Eq)
 
 ///|
+pub fn[A : PlatformPath] Directory::new(
+  components : ArrayView[String],
+) -> Directory[A] raise InvalidPathError {
+  FixedArray::makei(components.length(), i => A::from(components[i]))
+}
+
+///|
 pub fn[T] Directory::op_get(self : Directory[T], index : Int) -> T = "%fixedarray.get"
 
 ///|
@@ -149,6 +182,16 @@ pub fn[T] Directory::length(self : Directory[T]) -> Int = "%fixedarray.length"
 ///|
 pub fn[T] Directory::iter(self : Directory[T]) -> Iter[T] {
   FixedArray::iter(self.0)
+}
+
+///|
+#alias("_[_:_]")
+pub fn[T] Directory::sub(
+  self : Directory[T],
+  start? : Int = 0,
+  end? : Int = self.length(),
+) -> ArrayView[T] {
+  FixedArray::sub(self.0, start~, end~)
 }
 
 ///|
@@ -191,7 +234,7 @@ pub impl PlatformPath for UnixPathComponent with from(s) {
   guard !s.is_empty() else {
     raise UnixInvalidPath(start=0, message="empty path component")
   }
-  guard s.get_char(0) == Some('-') else {
+  guard s.get_char(0) != Some('-') else {
     raise UnixInvalidPath(start=0, message="not portable in posix standard")
   }
   for i, ch in s {
@@ -209,7 +252,7 @@ pub impl PlatformPath for UnixPathComponent with from(s) {
 pub(all) suberror InvalidPathError {
   WinInvalidPath(start~ : Int, message~ : String)
   UnixInvalidPath(start~ : Int, message~ : String)
-}
+} derive(Show)
 
 ///|
 pub(all) suberror ParseError {
