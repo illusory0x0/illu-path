@@ -66,7 +66,11 @@ pub fn Path::parse(s : String) -> Path raise PathError {
         rest,
         start=prefix.char_length(),
       )
-      win_path(prefix=VerbatimSymlink(symlink.to_string()), directory~, file?)
+      win_path(
+        prefix=VerbatimSymlink(symlink=symlink.to_string()),
+        directory~,
+        file?,
+      )
     }
     (
       (
