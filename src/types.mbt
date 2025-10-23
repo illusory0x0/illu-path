@@ -5,6 +5,129 @@ pub(all) enum Path {
 } derive(ToJson, Hash, Eq)
 
 ///|
+fn parse_windows_relative_path(
+  s : StringView,
+) -> (WinDirectory, WinFile) raise ParseError {
+  raise ParseError::WinParseError(start=0, message="unimplemented")
+}
+
+///|
+fn parse_unix_relative_path(
+  s : StringView,
+) -> (UnixDirectory, UnixFile) raise ParseError {
+  raise ParseError::UnixParseError(start=0, message="unimplemented")
+}
+
+///|
+pub fn Path::parse(s : String) -> Path raise ParseError {
+  lexmatch s {
+    ("\\\\\?\\", rest) => {
+      let (directory, file) = parse_windows_relative_path(rest)
+      WPath(WinPath::new(directory~, file~))
+    }
+    ("\\\\\?" ("[^\\]+" as symlink) "\\", rest) => {
+      // TODO: check symlink name 
+      let (directory, file) = parse_windows_relative_path(rest)
+      WPath(
+        WinPath::new(
+          prefix=Verbatim(symlink=symlink.to_string()),
+          directory~,
+          file~,
+        ),
+      )
+    }
+    (
+      "\\\\\?UNC\\"
+      ("[^\\]+" as hostname)
+      "\\"
+      ("[^\\]+" as shared_folder)
+      "\\",
+      rest
+    ) => {
+      // TODO: check hostname and shared_folder
+      let (directory, file) = parse_windows_relative_path(rest)
+      WPath(
+        WinPath::new(
+          prefix=VerbatimUNC(
+            hostname=hostname.to_string(),
+            shared_folder=shared_folder.to_string(),
+          ),
+          directory~,
+          file~,
+        ),
+      )
+    }
+    ("\\\\\?" ("[a-zA-Z]" as letter) ":\\", rest) => {
+      let (directory, file) = parse_windows_relative_path(rest)
+      WPath(
+        WinPath::new(prefix=VerbatimVolumeLetter(letter), directory~, file~),
+      )
+    }
+    ("\\\\\?Volume[{]" ("[^}]+" as guid) "[}]", rest) => {
+      let (directory, file) = parse_windows_relative_path(rest)
+      WPath(
+        WinPath::new(
+          prefix=VerbatimVolumeGUID(guid.to_string()),
+          directory~,
+          file~,
+        ),
+      )
+    }
+    // check the device 
+    ("\\\\\.\\" ("[^\\]+" as device) "\\", rest) => {
+      let (directory, file) = parse_windows_relative_path(rest)
+      WPath(
+        WinPath::new(
+          prefix=DeviceNS(device=device.to_string()),
+          directory~,
+          file~,
+        ),
+      )
+    }
+    (("[a-zA-Z]" as letter) ":\\", rest) => {
+      let (directory, file) = parse_windows_relative_path(rest)
+      WPath(WinPath::new(prefix=VolumeLetter(letter), directory~, file~))
+    }
+    // current path 
+    ("\.\\", rest) => {
+      let (directory, file) = parse_windows_relative_path(rest)
+      WPath(WinPath::new(directory~, file~))
+    }
+    // root path but without derive letter
+    ("\\\.\.", rest) => {
+      let (directory, file) = parse_windows_relative_path(rest)
+      WPath(WinPath::new(directory~, file~))
+    }
+    // root path but without derive letter 
+    ("\\", rest) => {
+      let (directory, file) = parse_windows_relative_path(rest)
+      WPath(WinPath::new(directory~, file~))
+    }
+    // current path 
+    ("\./", rest) => {
+      let (directory, file) = parse_unix_relative_path(rest)
+      UPath(UnixPath::new(directory~, file~))
+    }
+    // root path 
+    ("/\.\.", rest) => {
+      let (directory, file) = parse_unix_relative_path(rest)
+      UPath(UnixPath::new(is_absolute=true, directory~, file~))
+    }
+    // root path 
+    ("/", rest) => {
+      let (directory, file) = parse_unix_relative_path(rest)
+      UPath(UnixPath::new(is_absolute=true, directory~, file~))
+    }
+    _ => {
+      // fallback attempt: treat as unix relative path (very naive placeholder)
+      let sv = s[:]
+      let (directory, file) = parse_unix_relative_path(sv)
+      UPath(UnixPath::new(directory~, file~))
+    }
+  }
+}
+
+///|
 /// [Microsoft Naming a Volume](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-volume)
 /// [Microsoft Naming Files, Paths, and Namespaces](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file)
 /// [Microsoft Maximum Path Length Limitation](https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation)
@@ -48,7 +171,7 @@ pub fn WinPath::new(
 /// > relative paths are always limited to a total of MAX_PATH characters.
 /// 
 pub(all) enum WinPrefix {
-  /// Syntax: `\\?\<SYMLINK>\`
+  /// Syntax: `\\?\<SYMLINK>\` | `\\?\`
   ///
   /// Example: `\\?\GLOBALROOT\`
   Verbatim(symlink~ : String)
@@ -265,8 +388,8 @@ pub(all) suberror InvalidPathError {
 
 ///|
 pub(all) suberror ParseError {
-  WinParseError(start~ : Int)
-  UnixParseError(start~ : Int)
+  WinParseError(start~ : Int, message~ : String)
+  UnixParseError(start~ : Int, message~ : String)
 }
 
 ///|
