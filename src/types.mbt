@@ -39,7 +39,7 @@ fn parse_unix_relative_path(
   let mut start = start
   let file : UnixFile? = for {
     lexmatch rest with longest {
-      ((("[^/]+" as s) "/")  as all, r) => {
+      ((("[^/]+" as s) "/") as all, r) => {
         directory.push(UnixPathComponent::from(s, start~))
         start += all.char_length()
         rest = r
