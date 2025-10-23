@@ -70,14 +70,14 @@ pub fn Path::parse(s : String) -> Path raise PathError {
           shared_folder=shared_folder.to_string(),
         ),
       )
-    ("\\\\" ("[^\\]+" as hostname) "\\" ("[^\\]+" as shared_folder) "\\") =>
+    ("\\\\" ("[^\\]+" as hostname) "\\" ("[^\\]+" as shared_folder)) =>
       win_path(
         prefix=UNC(
           hostname=hostname.to_string(),
           shared_folder=shared_folder.to_string(),
         ),
       )
-    ("\\\\\.\\" ("[^\\]+" as device) "\\") =>
+    ("\\\\\.\\" ("[^\\]+" as device)) =>
       win_path(prefix=DeviceNS(device=device.to_string()))
     ("\\\\\?\\" ("[a-zA-Z]" as letter) ":\\") =>
       win_path(prefix=VerbatimVolumeLetter(letter))
@@ -198,8 +198,6 @@ pub fn Path::parse(s : String) -> Path raise PathError {
     }
     // root path but without derive letter, if at windows root path which parent also is root.
     ("\\\.\.\\" as prefix, rest) => {
-      println("done")
-      println(rest)
       let (directory, file) = parse_windows_relative_path(
         rest,
         start=prefix.char_length(),

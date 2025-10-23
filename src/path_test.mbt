@@ -81,6 +81,8 @@ test "WinPrefix::DeviceNS" {
   inspect(path, content="\\\\.\\COM56\\file.bin")
   let path = Path::parse("\\\\.\\COM56\\folder\\")
   inspect(path, content="\\\\.\\COM56\\folder\\")
+  let path = Path::parse("\\\\.\\COM56")
+  inspect(path, content="\\\\.\\COM56\\")
 }
 
 ///|
@@ -91,7 +93,8 @@ test "WinPrefix::UNC" {
   inspect(path, content="\\\\server\\share\\file.log")
   let path = Path::parse("\\\\server\\share\\folder\\")
   inspect(path, content="\\\\server\\share\\folder\\")
-  inspect(path, content="\\\\server\\share")
+  let path = Path::parse("\\\\server\\share")
+  inspect(path, content="\\\\server\\share\\")
 }
 
 ///|
