@@ -7,45 +7,78 @@ pub(all) enum Path {
 ///|
 fn parse_windows_relative_path(
   s : StringView,
-) -> (WinDirectory, WinFile) raise ParseError {
-  raise ParseError::WinParseError(start=0, message="unimplemented")
+  start~ : Int,
+) -> (WinDirectory, WinFile?) raise PathError {
+  let mut rest = s
+  let directory : Array[WinPathComponent] = []
+  let mut start = start
+  let file : WinFile? = for {
+    lexmatch rest with longest {
+      ((("[^\\]+" as s) "\\") as all, r) => {
+        directory.push(WinPathComponent::from(s, start~))
+        start = all.char_length()
+        rest = r
+      }
+      (("[^\\.]+" as base) "\." ("[^\\]+" as extension)) =>
+        break Some(WinFile::new(base~, extension~))
+      ("[^\\.]+" as base) => break Some(WinFile::new(base~))
+      "$" => break None
+      _ => raise PathError(start~, message="Invalid Windows path")
+    }
+  }
+  (Directory(FixedArray::from_array(directory)), file)
 }
 
 ///|
 fn parse_unix_relative_path(
   s : StringView,
-) -> (UnixDirectory, UnixFile) raise ParseError {
-  raise ParseError::UnixParseError(start=0, message="unimplemented")
+  start~ : Int,
+) -> (UnixDirectory, UnixFile?) raise PathError {
+  raise PathError::PathError(
+    start=0,
+    message="Unix path parsing not implemented: '\{s}'",
+  )
 }
 
 ///|
-pub fn Path::parse(s : String) -> Path raise ParseError {
-  lexmatch s {
-    ("\\\\\?\\", rest) => {
-      let (directory, file) = parse_windows_relative_path(rest)
-      WPath(WinPath::new(directory~, file~))
+pub fn Path::parse(s : String) -> Path raise PathError {
+  lexmatch s with longest {
+    ("\\\\\?\\" as prefix, rest) => {
+      let (directory, file) = parse_windows_relative_path(
+        rest,
+        start=prefix.char_length(),
+      )
+      WPath(WinPath::new(directory~, file?))
     }
-    ("\\\\\?" ("[^\\]+" as symlink) "\\", rest) => {
+    (("\\\\\?" ("[^\\]+" as symlink) "\\") as prefix, rest) => {
       // TODO: check symlink name 
-      let (directory, file) = parse_windows_relative_path(rest)
+      let (directory, file) = parse_windows_relative_path(
+        rest,
+        start=prefix.char_length(),
+      )
       WPath(
         WinPath::new(
           prefix=Verbatim(symlink=symlink.to_string()),
           directory~,
-          file~,
+          file?,
         ),
       )
     }
     (
-      "\\\\\?UNC\\"
-      ("[^\\]+" as hostname)
-      "\\"
-      ("[^\\]+" as shared_folder)
-      "\\",
+      (
+        "\\\\\?UNC\\"
+        ("[^\\]+" as hostname)
+        "\\"
+        ("[^\\]+" as shared_folder)
+        "\\"
+      ) as prefix,
       rest
     ) => {
       // TODO: check hostname and shared_folder
-      let (directory, file) = parse_windows_relative_path(rest)
+      let (directory, file) = parse_windows_relative_path(
+        rest,
+        start=prefix.char_length(),
+      )
       WPath(
         WinPath::new(
           prefix=VerbatimUNC(
@@ -53,77 +86,107 @@ pub fn Path::parse(s : String) -> Path raise ParseError {
             shared_folder=shared_folder.to_string(),
           ),
           directory~,
-          file~,
+          file?,
         ),
       )
     }
-    ("\\\\\?" ("[a-zA-Z]" as letter) ":\\", rest) => {
-      let (directory, file) = parse_windows_relative_path(rest)
+    (("\\\\\?" ("[a-zA-Z]" as letter) ":\\") as prefix, rest) => {
+      let (directory, file) = parse_windows_relative_path(
+        rest,
+        start=prefix.char_length(),
+      )
       WPath(
-        WinPath::new(prefix=VerbatimVolumeLetter(letter), directory~, file~),
+        WinPath::new(prefix=VerbatimVolumeLetter(letter), directory~, file?),
       )
     }
-    ("\\\\\?Volume[{]" ("[^}]+" as guid) "[}]", rest) => {
-      let (directory, file) = parse_windows_relative_path(rest)
+    (("\\\\\?Volume[{]" ("[^}]+" as guid) "[}]") as prefix, rest) => {
+      let (directory, file) = parse_windows_relative_path(
+        rest,
+        start=prefix.char_length(),
+      )
       WPath(
         WinPath::new(
           prefix=VerbatimVolumeGUID(guid.to_string()),
           directory~,
-          file~,
+          file?,
         ),
       )
     }
     // check the device 
-    ("\\\\\.\\" ("[^\\]+" as device) "\\", rest) => {
-      let (directory, file) = parse_windows_relative_path(rest)
+    (("\\\\\.\\" ("[^\\]+" as device) "\\") as prefix, rest) => {
+      let (directory, file) = parse_windows_relative_path(
+        rest,
+        start=prefix.char_length(),
+      )
       WPath(
         WinPath::new(
           prefix=DeviceNS(device=device.to_string()),
           directory~,
-          file~,
+          file?,
         ),
       )
     }
-    (("[a-zA-Z]" as letter) ":\\", rest) => {
-      let (directory, file) = parse_windows_relative_path(rest)
-      WPath(WinPath::new(prefix=VolumeLetter(letter), directory~, file~))
+    ((("[a-zA-Z]" as letter) ":\\") as prefix, rest) => {
+      let (directory, file) = parse_windows_relative_path(
+        rest,
+        start=prefix.char_length(),
+      )
+      WPath(WinPath::new(prefix=VolumeLetter(letter), directory~, file?))
     }
     // current path 
-    ("\.\\", rest) => {
-      let (directory, file) = parse_windows_relative_path(rest)
-      WPath(WinPath::new(directory~, file~))
+    ("\.\\" as prefix, rest) => {
+      let (directory, file) = parse_windows_relative_path(
+        rest,
+        start=prefix.char_length(),
+      )
+      WPath(WinPath::new(directory~, file?))
     }
     // root path but without derive letter
-    ("\\\.\.", rest) => {
-      let (directory, file) = parse_windows_relative_path(rest)
-      WPath(WinPath::new(directory~, file~))
+    ("\\\.\." as prefix, rest) => {
+      let (directory, file) = parse_windows_relative_path(
+        rest,
+        start=prefix.char_length(),
+      )
+      WPath(WinPath::new(directory~, file?))
     }
     // root path but without derive letter 
-    ("\\", rest) => {
-      let (directory, file) = parse_windows_relative_path(rest)
-      WPath(WinPath::new(directory~, file~))
+    ("\\" as prefix, rest) => {
+      let (directory, file) = parse_windows_relative_path(
+        rest,
+        start=prefix.utf16_len(),
+      )
+      WPath(WinPath::new(directory~, file?))
     }
     // current path 
-    ("\./", rest) => {
-      let (directory, file) = parse_unix_relative_path(rest)
-      UPath(UnixPath::new(directory~, file~))
+    ("\./" as prefix, rest) => {
+      let (directory, file) = parse_unix_relative_path(
+        rest,
+        start=prefix.char_length(),
+      )
+      UPath(UnixPath::new(directory~, file?))
     }
     // root path 
-    ("/\.\.", rest) => {
-      let (directory, file) = parse_unix_relative_path(rest)
-      UPath(UnixPath::new(is_absolute=true, directory~, file~))
+    ("/\.\." as prefix, rest) => {
+      let (directory, file) = parse_unix_relative_path(
+        rest,
+        start=prefix.char_length(),
+      )
+      UPath(UnixPath::new(is_absolute=true, directory~, file?))
     }
     // root path 
-    ("/", rest) => {
-      let (directory, file) = parse_unix_relative_path(rest)
-      UPath(UnixPath::new(is_absolute=true, directory~, file~))
+    ("/" as prefix, rest) => {
+      let (directory, file) = parse_unix_relative_path(
+        rest,
+        start=prefix.utf16_len(),
+      )
+      UPath(UnixPath::new(is_absolute=true, directory~, file?))
     }
-    _ => {
+    _ =>
       // fallback attempt: treat as unix relative path (very naive placeholder)
-      let sv = s[:]
-      let (directory, file) = parse_unix_relative_path(sv)
-      UPath(UnixPath::new(directory~, file~))
-    }
+      // let sv = s[:]
+      // let (directory, file) = parse_unix_relative_path(sv)
+      panic()
+    // UPath(UnixPath::new(directory~, file?))
   }
 }
 
@@ -263,23 +326,29 @@ pub fn UnixPath::new(
 ///|
 pub struct File[Component] {
   base : Component
-  extension : Component
+  extension : Component?
 } derive(ToJson, Hash, Eq)
 
 ///|
 pub fn[A : PlatformPath] File::new(
-  base~ : String,
-  extension~ : String,
-) -> File[A] raise InvalidPathError {
-  for i, ch in extension {
-    guard ch != '.' else {
-      raise InvalidPathError::InvalidExtension(
-        start=i,
-        message="extension cannot contain `.` character",
-      )
+  base~ : StringView,
+  extension? : StringView,
+) -> File[A] raise PathError {
+  let ext = if extension is Some(extension) {
+    for i, ch in extension {
+      guard ch != '.' else {
+        raise PathError::PathError(
+          start=i,
+          message="Invalid file extension at position \{i}: extension '\{extension}' cannot contain '.' character",
+        )
+      }
     }
+    Some(A::from(extension))
+  } else {
+    None
   }
-  File::{ base: A::from(base), extension: A::from(extension) }
+  let base_component = A::from(base)
+  File::{ base: base_component, extension: ext }
 }
 
 ///|
@@ -299,9 +368,13 @@ struct Directory[Component](FixedArray[Component]) derive(ToJson, Hash, Eq)
 
 ///|
 pub fn[A : PlatformPath] Directory::new(
-  components : ArrayView[String],
-) -> Directory[A] raise InvalidPathError {
-  FixedArray::makei(components.length(), i => A::from(components[i]))
+  components : ArrayView[StringView],
+) -> Directory[A] raise PathError {
+  let result : Array[A] = []
+  for i = 0; i < components.length(); i = i + 1 {
+    result.push(A::from(components[i]))
+  }
+  Directory(FixedArray::from_array(result))
 }
 
 ///|
@@ -333,64 +406,122 @@ struct UnixPathComponent(String) derive(ToJson, Hash, Eq)
 
 ///|
 trait PlatformPath {
-  from(s : String) -> Self raise InvalidPathError
+  from(s : StringView) -> Self raise PathError
 }
 
 ///|
-let windows_reserved_names_set : Set[String] = Set::from_iter(
-  windows_reserved_names.iter(),
+let windows_reserved_names_set : Set[StringView] = Set::from_iter(
+  windows_reserved_names.iter().map(x => x),
 )
 
 ///|
-pub impl PlatformPath for WinPathComponent with from(s) {
+pub fn WinPathComponent::from(
+  s : StringView,
+  start? : Int = 0,
+) -> WinPathComponent raise PathError {
   guard !s.is_empty() else {
-    raise WinInvalidPath(start=0, message="empty path component")
+    raise PathError::PathError(
+      start=0,
+      message="Windows path: empty path component not allowed",
+    )
   }
   guard !windows_reserved_names_set.contains(s) else {
-    raise WinInvalidPath(start=0, message="reserved name")
+    raise PathError::PathError(
+      start=0,
+      message="Windows path: '\{s}' is a reserved name (CON, PRN, AUX, NUL, COM1-9, LPT1-9)",
+    )
   }
   for i, ch in s {
     guard !is_windows_reserved_character(ch) else {
-      raise WinInvalidPath(start=i, message="reserved character")
+      raise PathError::PathError(
+        start=start + i,
+        message="Windows path: character '\{ch}' at position \{start+i} is not allowed (reserved characters: < > : \" / \\ | ? * and control characters)",
+      )
     }
     guard ch != '\\' else {
-      raise WinInvalidPath(start=i, message="`\\` in path componnent")
+      raise PathError::PathError(
+        start=start + i,
+        message="Windows path: backslash '\\' at position \{start+i} not allowed in path component",
+      )
     }
   }
-  s
+  WinPathComponent(s.to_string())
+}
+
+///|
+pub fn UnixPathComponent::from(
+  s : StringView,
+  start~ : Int,
+) -> UnixPathComponent raise PathError {
+  guard !s.is_empty() else {
+    raise PathError::PathError(
+      start~,
+      message="Unix path: empty path component not allowed",
+    )
+  }
+  guard s.get_char(0) != Some('-') else {
+    raise PathError::PathError(
+      start~,
+      message="Unix path: component '\{s}' cannot start with '-' (not portable according to POSIX standard)",
+    )
+  }
+  for i, ch in s {
+    guard ch != '/' else {
+      raise PathError::PathError(
+        start=start + i,
+        message="Unix path: forward slash '/' at position \{start + i} not allowed in path component",
+      )
+    }
+    guard ch != '\u0000' else {
+      raise PathError::PathError(
+        start=start + i,
+        message="Unix path: null character (\\u0000) at position \{start + i} not allowed in path component",
+      )
+    }
+  }
+  UnixPathComponent(s.to_string())
+}
+
+///|
+pub impl PlatformPath for WinPathComponent with from(s) {
+  WinPathComponent::from(s)
 }
 
 ///|
 pub impl PlatformPath for UnixPathComponent with from(s) {
   guard !s.is_empty() else {
-    raise UnixInvalidPath(start=0, message="empty path component")
+    raise PathError::PathError(
+      start=0,
+      message="Unix path: empty path component not allowed",
+    )
   }
   guard s.get_char(0) != Some('-') else {
-    raise UnixInvalidPath(start=0, message="not portable in posix standard")
+    raise PathError::PathError(
+      start=0,
+      message="Unix path: component '\{s}' cannot start with '-' (not portable according to POSIX standard)",
+    )
   }
   for i, ch in s {
     guard ch != '/' else {
-      raise UnixInvalidPath(start=i, message="`/` in path component")
+      raise PathError::PathError(
+        start=i,
+        message="Unix path: forward slash '/' at position \{i} not allowed in path component",
+      )
     }
     guard ch != '\u0000' else {
-      raise UnixInvalidPath(start=i, message="null character in path component")
+      raise PathError::PathError(
+        start=i,
+        message="Unix path: null character (\\u0000) at position \{i} not allowed in path component",
+      )
     }
   }
-  s
+  UnixPathComponent(s.to_string())
 }
 
 ///|
-pub(all) suberror InvalidPathError {
-  WinInvalidPath(start~ : Int, message~ : String)
-  UnixInvalidPath(start~ : Int, message~ : String)
-  InvalidExtension(start~ : Int, message~ : String)
+pub(all) suberror PathError {
+  PathError(start~ : Int, message~ : String)
 } derive(Show)
-
-///|
-pub(all) suberror ParseError {
-  WinParseError(start~ : Int, message~ : String)
-  UnixParseError(start~ : Int, message~ : String)
-}
 
 ///|
 pub fn WinPath::is_absolute(self : WinPath) -> Bool {

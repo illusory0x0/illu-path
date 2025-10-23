@@ -14,27 +14,16 @@ pub impl Show for UnixPathComponent with output(self, logger) {
 ///|
 pub impl Show for UnixPathComponent with to_string(self) = "%identity"
 
-///|
-impl IsEmpty for WinPathComponent with is_empty(self) {
-  self.0 == ""
-}
+
+
+
 
 ///|
-impl IsEmpty for UnixPathComponent with is_empty(self) {
-  self.0 == ""
-}
-
-///|
-trait IsEmpty {
-  is_empty(Self) -> Bool
-}
-
-///|
-pub impl[A : Show + IsEmpty] Show for File[A] with output(self, logger) {
+pub impl[A : Show] Show for File[A] with output(self, logger) {
   logger.write_object(self.base)
-  if !self.extension.is_empty() {
+  if self.extension is Some(ext) {
     logger.write_char('.')
-    logger.write_object(self.extension)
+    logger.write_object(ext)
   }
 }
 
@@ -212,7 +201,7 @@ test "windows path" {
   )
   inspect(
     path,
-    content="\\\\?\\Volume{12345678-1234-1234-1234-1234567890AB}:\\folder\\",
+    content="\\\\?\\Volume{12345678-1234-1234-1234-1234567890AB}:folder\\",
   )
   let path = WinPath::new(
     prefix=DeviceNS(device="COM56"),

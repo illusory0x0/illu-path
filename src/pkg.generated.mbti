@@ -4,18 +4,8 @@ package "illusory0x0/path"
 // Values
 
 // Errors
-pub(all) suberror InvalidPathError {
-  WinInvalidPath(start~ : Int, message~ : String)
-  UnixInvalidPath(start~ : Int, message~ : String)
-  InvalidExtension(start~ : Int, message~ : String)
-}
-fn InvalidPathError::output(Self, &Logger) -> Unit // from trait `Show`
-fn InvalidPathError::to_string(Self) -> String // from trait `Show`
-impl Show for InvalidPathError
-
-pub(all) suberror ParseError {
-  WinParseError(start~ : Int)
-  UnixParseError(start~ : Int)
+pub(all) suberror PathError {
+  PathError(start~ : Int, message~ : String)
 }
 
 // Types and methods
@@ -25,7 +15,7 @@ fn[Component : Hash] Directory::hash(Self[Component]) -> Int // from trait `Hash
 fn[Component : Hash] Directory::hash_combine(Self[Component], Hasher) -> Unit // from trait `Hash`
 fn[T] Directory::iter(Self[T]) -> Iter[T]
 fn[T] Directory::length(Self[T]) -> Int
-fn[A : PlatformPath] Directory::new(ArrayView[String]) -> Self[A] raise InvalidPathError
+fn[A : PlatformPath] Directory::new(ArrayView[String]) -> Self[A] raise PathError
 #deprecated
 fn[Component : Eq] Directory::op_equal(Self[Component], Self[Component]) -> Bool // from trait `Eq`
 fn[T] Directory::op_get(Self[T], Int) -> T
@@ -43,7 +33,7 @@ pub struct File[Component] {
 fn[Component : Eq] File::equal(Self[Component], Self[Component]) -> Bool // from trait `Eq`
 fn[Component : Hash] File::hash(Self[Component]) -> Int // from trait `Hash`
 fn[Component : Hash] File::hash_combine(Self[Component], Hasher) -> Unit // from trait `Hash`
-fn[A : PlatformPath] File::new(base~ : String, extension~ : String) -> Self[A] raise InvalidPathError
+fn[A : PlatformPath] File::new(base~ : String, extension~ : String) -> Self[A] raise PathError
 #deprecated
 fn[Component : Eq] File::op_equal(Self[Component], Self[Component]) -> Bool // from trait `Eq`
 fn[A : Show + IsEmpty] File::output(Self[A], &Logger) -> Unit // from trait `Show`
@@ -66,6 +56,7 @@ fn Path::is_relative(Self) -> Bool
 #deprecated
 fn Path::op_equal(Self, Self) -> Bool // from trait `Eq`
 fn Path::output(Self, &Logger) -> Unit // from trait `Show`
+fn Path::parse(String) -> Self raise PathError
 fn Path::to_json(Self) -> Json // from trait `ToJson`
 fn Path::to_string(Self) -> String // from trait `Show`
 impl Eq for Path
