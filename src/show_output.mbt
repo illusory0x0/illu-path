@@ -75,12 +75,14 @@ pub impl Show for WinPrefix with output(self, logger) {
     Verbatim(symlink~) => {
       logger.write_string(VerbatimPrefix)
       logger.write_string(symlink)
+      logger.write_char(BackSlash)
     }
     VerbatimUNC(hostname~, shared_folder~) => {
       logger.write_string(VerbatimUncPrefix)
       logger.write_string(hostname)
       logger.write_char(BackSlash)
       logger.write_string(shared_folder)
+      logger.write_char(BackSlash)
     }
     VerbatimVolumeLetter(letter) => {
       logger.write_string(VerbatimPrefix)
@@ -95,12 +97,14 @@ pub impl Show for WinPrefix with output(self, logger) {
     DeviceNS(device~) => {
       logger.write_string(DevicePrefix)
       logger.write_string(device)
+      logger.write_char(BackSlash)
     }
     UNC(hostname~, shared_folder~) => {
       logger.write_string(UncPrefix)
       logger.write_string(hostname)
       logger.write_char(BackSlash)
       logger.write_string(shared_folder)
+      logger.write_char(BackSlash)
     }
     VolumeLetter(letter) => {
       logger.write_char(letter)
@@ -115,13 +119,9 @@ pub impl Show for WinPath with output(self, logger) {
   if prefix is Some(prefix) {
     logger.write_object(prefix)
   }
-  loop directory[:] {
-    [] => ()
-    [x, .. xs] => {
-      logger.write_object(x)
-      logger.write_char(BackSlash)
-      continue xs
-    }
+  for component in directory {
+    logger.write_object(component)
+    logger.write_char(BackSlash)
   }
   if file is Some(file) {
     logger.write_object(file)
@@ -137,13 +137,9 @@ pub impl Show for UnixPath with output(self, logger) {
   if is_absolute {
     logger.write_char(Slash)
   }
-  loop directory[:] {
-    [] => ()
-    [x, .. xs] => {
-      logger.write_object(x)
-      logger.write_char(Slash)
-      continue xs
-    }
+  for component in directory {
+    logger.write_object(component)
+    logger.write_char(Slash)
   }
   if file is Some(file) {
     logger.write_object(file)
@@ -173,11 +169,53 @@ test "unix path" {
   inspect(path, content="/")
 }
 
+///|
 test "windows path" {
   let path = WinPath::new(
-    prefix=(VolumeLetter('C')),
+    prefix=VolumeLetter('C'),
     directory=Directory::new(["Users", "username", "Documents"]),
-    file=(File::new(base="file",extension= "txt")),
+    file=File::new(base="file", extension="txt"),
   )
   inspect(path, content="C:\\Users\\username\\Documents\\file.txt")
+  let path = WinPath::new(directory=Directory::new(["develop", "my_project"]))
+  inspect(path, content="develop\\my_project\\")
+  let path = WinPath::new(
+    directory=Directory::new(["develop", "my_project"]),
+    file=File::new(base="readme", extension="md"),
+  )
+  inspect(path, content="develop\\my_project\\readme.md")
+  let path = WinPath::new(
+    prefix=UNC(hostname="server", shared_folder="share"),
+    directory=Directory::new(["folder"]),
+  )
+  inspect(path, content="\\\\server\\share\\folder\\")
+  let path = WinPath::new(
+    prefix=VerbatimUNC(hostname="server", shared_folder="share"),
+    directory=Directory::new(["folder"]),
+  )
+  inspect(path, content="\\\\?\\UNC\\server\\share\\folder\\")
+  let path = WinPath::new(
+    prefix=Verbatim(symlink=""),
+    directory=Directory::new(["folder"]),
+  )
+  inspect(path, content="\\\\?\\\\folder\\")
+  let path = WinPath::new(
+    prefix=VerbatimVolumeLetter('D'),
+    directory=Directory::new(["Pictures"]),
+    file=File::new(base="apple", extension="png"),
+  )
+  inspect(path, content="\\\\?\\D:\\Pictures\\apple.png")
+  let path = WinPath::new(
+    prefix=VerbatimVolumeGUID("{12345678-1234-1234-1234-1234567890AB}"),
+    directory=Directory::new(["folder"]),
+  )
+  inspect(
+    path,
+    content="\\\\?\\Volume{{12345678-1234-1234-1234-1234567890AB}}:\\folder\\",
+  )
+  let path = WinPath::new(
+    prefix=DeviceNS(device="COM56"),
+    directory=Directory::new(["folder"]),
+  )
+  inspect(path, content="\\\\.\\COM56\\folder\\")
 }

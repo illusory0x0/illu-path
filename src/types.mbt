@@ -48,13 +48,13 @@ pub fn WinPath::new(
 /// > relative paths are always limited to a total of MAX_PATH characters.
 /// 
 pub(all) enum WinPrefix {
-  /// Syntax: `\\?\<SYMLINK>`
+  /// Syntax: `\\?\<SYMLINK>\`
   ///
-  /// Example: `\\?\GLOBALROOT`
+  /// Example: `\\?\GLOBALROOT\`
   Verbatim(symlink~ : String)
-  /// Syntax: `\\?\UNC\<SERVER>\<SHARE>`
+  /// Syntax: `\\?\UNC\<SERVER>\<SHARE>\`
   ///
-  /// Example: `\\?\UNC\server\share`
+  /// Example: `\\?\UNC\server\share\`
   VerbatimUNC(hostname~ : String, shared_folder~ : String)
   /// Syntax: `\\?\<L>:\`
   ///
@@ -68,15 +68,15 @@ pub(all) enum WinPrefix {
   ///
   /// [Microsoft Enumerating Volume GUID Paths](https://learn.microsoft.com/en-us/windows/win32/fileio/enumerating-unique-volume-names)
   VerbatimVolumeGUID(String)
-  /// Syntax: `\\.\<DEVICE>`
+  /// Syntax: `\\.\<DEVICE>\`
   ///
-  /// Example: `\\.\COM56"`
+  /// Example: `\\.\COM56\`
   ///
   /// [Microsoft Win32 Device Namespaces](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file#win32-device-namespaces)
   DeviceNS(device~ : String)
-  /// Syntax: `\\<SERVER>\<SHARE>`
+  /// Syntax: `\\<SERVER>\<SHARE>\`
   ///
-  /// Example: `\\server\share`
+  /// Example: `\\server\share\`
   UNC(hostname~ : String, shared_folder~ : String)
   /// Syntax: `<L>:\`
   ///
