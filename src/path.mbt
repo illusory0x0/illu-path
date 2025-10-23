@@ -238,7 +238,7 @@ pub fn[A : PlatformPath] Directory::new(
 }
 
 ///|
-pub fn WinPathComponent::from(
+fn WinPathComponent::from(
   s : StringView,
   start~ : Int,
 ) -> WinPathComponent raise PathError {
@@ -272,7 +272,7 @@ pub fn WinPathComponent::from(
 }
 
 ///|
-pub fn UnixPathComponent::from(
+fn UnixPathComponent::from(
   s : StringView,
   start~ : Int,
 ) -> UnixPathComponent raise PathError {

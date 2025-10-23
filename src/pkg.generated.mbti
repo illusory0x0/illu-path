@@ -90,7 +90,6 @@ impl ToJson for UnixPath
 
 type UnixPathComponent
 fn UnixPathComponent::equal(Self, Self) -> Bool // from trait `Eq`
-fn UnixPathComponent::from(StringView, start~ : Int) -> Self raise PathError
 fn UnixPathComponent::hash(Self) -> Int // from trait `Hash`
 fn UnixPathComponent::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
 #deprecated
@@ -127,7 +126,6 @@ impl ToJson for WinPath
 
 type WinPathComponent
 fn WinPathComponent::equal(Self, Self) -> Bool // from trait `Eq`
-fn WinPathComponent::from(StringView, start~ : Int) -> Self raise PathError
 fn WinPathComponent::hash(Self) -> Int // from trait `Hash`
 fn WinPathComponent::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
 #deprecated
