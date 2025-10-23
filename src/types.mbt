@@ -34,10 +34,24 @@ fn parse_unix_relative_path(
   s : StringView,
   start~ : Int,
 ) -> (UnixDirectory, UnixFile?) raise PathError {
-  raise PathError::PathError(
-    start~,
-    message="Unix path parsing not implemented: '\{s}'",
-  )
+  let mut rest = s
+  let directory : Array[UnixPathComponent] = []
+  let mut start = start
+  let file : UnixFile? = for {
+    lexmatch rest with longest {
+      ((("[^/]+" as s) "/")  as all, r) => {
+        directory.push(UnixPathComponent::from(s, start~))
+        start += all.char_length()
+        rest = r
+      }
+      (("[^/.]+" as base) "\." ("[^/]+" as extension)) =>
+        break Some(UnixFile::new(base~, extension~))
+      ("[^/.]+" as base) => break Some(UnixFile::new(base~))
+      "$" => break None
+      _ => raise PathError(start~, message="Invalid Unix path")
+    }
+  }
+  (Directory(FixedArray::from_array(directory)), file)
 }
 
 ///|
@@ -140,7 +154,6 @@ pub fn Path::parse(s : String) -> Path raise PathError {
       )
     }
     ("\\\\\?\\" as prefix, rest) => {
-      // println("done")
       let (directory, file) = parse_windows_relative_path(
         rest,
         start=prefix.char_length(),
@@ -163,7 +176,9 @@ pub fn Path::parse(s : String) -> Path raise PathError {
       WPath(WinPath::new(directory~, file?))
     }
     // root path but without derive letter, if at windows root path which parent also is root.
-    ("\\\.\." as prefix, rest) => {
+    ("\\\.\.\\" as prefix, rest) => {
+      println("done")
+      println(rest)
       let (directory, file) = parse_windows_relative_path(
         rest,
         start=prefix.char_length(),
@@ -187,7 +202,7 @@ pub fn Path::parse(s : String) -> Path raise PathError {
       UPath(UnixPath::new(directory~, file?))
     }
     // root path, if at unix root path which parent also is root.
-    ("/\.\." as prefix, rest) => {
+    ("/\.\./" as prefix, rest) => {
       let (directory, file) = parse_unix_relative_path(
         rest,
         start=prefix.char_length(),

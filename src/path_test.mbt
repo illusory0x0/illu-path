@@ -92,3 +92,27 @@ test "WinPrefix::VolumeLetter" {
   let path = Path::parse("C:\\folder\\")
   inspect(path, content="C:\\folder\\")
 }
+
+///|
+test "Windows relative path" {
+  let path = Path::parse(".\\folder\\file")
+  inspect(path, content="folder\\file")
+  let path = Path::parse("\\folder\\file")
+  inspect(path, content="folder\\file")
+  let path = Path::parse("\\..\\folder\\file")
+  inspect(path, content="folder\\file")
+}
+
+///|
+test "Unix relative path" {
+  let path = Path::parse("./folder/file")
+  inspect(path, content="folder/file")
+}
+
+///|
+test "Unix absolute path" {
+  let path = Path::parse("/../folder/file")
+  inspect(path, content="/folder/file")
+  let path = Path::parse("/folder/file")
+  inspect(path, content="/folder/file")
+}
