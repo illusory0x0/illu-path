@@ -49,6 +49,15 @@ fn parse_unix_relative_path(
 }
 
 ///|
+fn win_path(
+  prefix? : WinPrefix,
+  directory~ : WinDirectory,
+  file? : WinFile,
+) -> Path {
+  WPath(WinPath::{ prefix, directory, file })
+}
+
+///|
 pub fn Path::parse(s : String) -> Path raise PathError {
   lexmatch s with longest {
     (("\\\\\?\\" ("[^\\]+" as symlink) "\\") as prefix, rest) => {
@@ -57,13 +66,7 @@ pub fn Path::parse(s : String) -> Path raise PathError {
         rest,
         start=prefix.char_length(),
       )
-      WPath(
-        WinPath::new(
-          prefix=VerbatimSymlink(symlink=symlink.to_string()),
-          directory~,
-          file?,
-        ),
-      )
+      win_path(prefix=VerbatimSymlink(symlink.to_string()), directory~, file?)
     }
     (
       (
@@ -80,15 +83,13 @@ pub fn Path::parse(s : String) -> Path raise PathError {
         rest,
         start=prefix.char_length(),
       )
-      WPath(
-        WinPath::new(
-          prefix=VerbatimUNC(
-            hostname=hostname.to_string(),
-            shared_folder=shared_folder.to_string(),
-          ),
-          directory~,
-          file?,
+      win_path(
+        prefix=VerbatimUNC(
+          hostname=hostname.to_string(),
+          shared_folder=shared_folder.to_string(),
         ),
+        directory~,
+        file?,
       )
     }
     (
@@ -100,15 +101,13 @@ pub fn Path::parse(s : String) -> Path raise PathError {
         rest,
         start=prefix.char_length(),
       )
-      WPath(
-        WinPath::new(
-          prefix=UNC(
-            hostname=hostname.to_string(),
-            shared_folder=shared_folder.to_string(),
-          ),
-          directory~,
-          file?,
+      win_path(
+        prefix=UNC(
+          hostname=hostname.to_string(),
+          shared_folder=shared_folder.to_string(),
         ),
+        directory~,
+        file?,
       )
     }
     (("\\\\\?\\Volume[{]" ("[^}]+" as guid) "[}]") as prefix, rest) => {
@@ -116,50 +115,36 @@ pub fn Path::parse(s : String) -> Path raise PathError {
         rest,
         start=prefix.char_length(),
       )
-      WPath(
-        WinPath::new(
-          prefix=VerbatimVolumeGUID(guid.to_string()),
-          directory~,
-          file?,
-        ),
-      )
+      win_path(prefix=VerbatimVolumeGUID(guid.to_string()), directory~, file?)
     }
-    // check the device 
     (("\\\\\.\\" ("[^\\]+" as device) "\\") as prefix, rest) => {
+      // check the device 
       let (directory, file) = parse_windows_relative_path(
         rest,
         start=prefix.char_length(),
       )
-      WPath(
-        WinPath::new(
-          prefix=DeviceNS(device=device.to_string()),
-          directory~,
-          file?,
-        ),
-      )
+      win_path(prefix=DeviceNS(device=device.to_string()), directory~, file?)
     }
     (("\\\\\?\\" ("[a-zA-Z]" as letter) ":\\") as prefix, rest) => {
       let (directory, file) = parse_windows_relative_path(
         rest,
         start=prefix.char_length(),
       )
-      WPath(
-        WinPath::new(prefix=VerbatimVolumeLetter(letter), directory~, file?),
-      )
+      win_path(prefix=VerbatimVolumeLetter(letter), directory~, file?)
     }
     ("\\\\\?\\" as prefix, rest) => {
       let (directory, file) = parse_windows_relative_path(
         rest,
         start=prefix.char_length(),
       )
-      WPath(WinPath::new(prefix=Verbatim, directory~, file?))
+      win_path(prefix=Verbatim, directory~, file?)
     }
     ((("[a-zA-Z]" as letter) ":\\") as prefix, rest) => {
       let (directory, file) = parse_windows_relative_path(
         rest,
         start=prefix.char_length(),
       )
-      WPath(WinPath::new(prefix=VolumeLetter(letter), directory~, file?))
+      win_path(prefix=VolumeLetter(letter), directory~, file?)
     }
     // current path 
     ("\.\\" as prefix, rest) => {
@@ -167,7 +152,7 @@ pub fn Path::parse(s : String) -> Path raise PathError {
         rest,
         start=prefix.char_length(),
       )
-      WPath(WinPath::new(directory~, file?))
+      win_path(directory~, file?)
     }
     // root path but without derive letter, if at windows root path which parent also is root.
     ("\\\.\.\\" as prefix, rest) => {
@@ -177,7 +162,7 @@ pub fn Path::parse(s : String) -> Path raise PathError {
         rest,
         start=prefix.char_length(),
       )
-      WPath(WinPath::new(directory~, file?))
+      win_path(directory~, file?)
     }
     // root path but without derive letter 
     ("\\" as prefix, rest) => {
@@ -185,7 +170,7 @@ pub fn Path::parse(s : String) -> Path raise PathError {
         rest,
         start=prefix.utf16_len(),
       )
-      WPath(WinPath::new(directory~, file?))
+      win_path(directory~, file?)
     }
     // current path 
     ("\./" as prefix, rest) => {
@@ -211,12 +196,7 @@ pub fn Path::parse(s : String) -> Path raise PathError {
       )
       UPath(UnixPath::new(is_absolute=true, directory~, file?))
     }
-    _ =>
-      // fallback attempt: treat as unix relative path (very naive placeholder)
-      // let sv = s[:]
-      // let (directory, file) = parse_unix_relative_path(sv)
-      panic()
-    // UPath(UnixPath::new(directory~, file?))
+    _ => raise PathError(start=0, message="Invalid path format")
   }
 }
 

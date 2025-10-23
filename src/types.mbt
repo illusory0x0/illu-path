@@ -55,7 +55,7 @@ pub(all) enum WinPrefix {
   /// Syntax: `\\?\<SYMLINK>\` 
   ///
   /// Example: `\\?\GLOBALROOT\`
-  VerbatimSymlink(symlink~ : String)
+  VerbatimSymlink(String)
   /// Syntax: `\\?\UNC\<SERVER>\<SHARE>\`
   ///
   /// Example: `\\?\UNC\server\share\`
