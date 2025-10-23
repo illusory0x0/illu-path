@@ -167,4 +167,17 @@ test "unix path" {
     directory=Directory::new(["home", "username", ".moon"]),
   )
   inspect(path, content="/home/username/.moon/")
+  let path = UnixPath::new(directory=Directory::new([]))
+  inspect(path, content="")
+  let path = UnixPath::new(is_absolute=true, directory=Directory::new([]))
+  inspect(path, content="/")
+}
+
+test "windows path" {
+  let path = WinPath::new(
+    prefix=(VolumeLetter('C')),
+    directory=Directory::new(["Users", "username", "Documents"]),
+    file=(File::new(base="file",extension= "txt")),
+  )
+  inspect(path, content="C:\\Users\\username\\Documents\\file.txt")
 }

@@ -148,6 +148,14 @@ pub fn[A : PlatformPath] File::new(
   base~ : String,
   extension~ : String,
 ) -> File[A] raise InvalidPathError {
+  for i, ch in extension {
+    guard ch != '.' else {
+      raise InvalidPathError::InvalidExtension(
+        start=i,
+        message="extension cannot contain `.` character",
+      )
+    }
+  }
   File::{ base: A::from(base), extension: A::from(extension) }
 }
 
@@ -252,6 +260,7 @@ pub impl PlatformPath for UnixPathComponent with from(s) {
 pub(all) suberror InvalidPathError {
   WinInvalidPath(start~ : Int, message~ : String)
   UnixInvalidPath(start~ : Int, message~ : String)
+  InvalidExtension(start~ : Int, message~ : String)
 } derive(Show)
 
 ///|
