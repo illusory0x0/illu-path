@@ -211,15 +211,21 @@ pub(all) suberror PathError {
 
 ///|
 pub fn WinPath::is_absolute(self : WinPath) -> Bool {
-  self.prefix is Some(_)
+  !self.is_relative()
 }
 
 ///|
 pub fn WinPath::is_relative(self : WinPath) -> Bool {
-  self.prefix is None
+  self.prefix is (Some(Root) | None)
 }
 
 ///|
+pub fn WinPath::is_root_path(self : WinPath) -> Bool {
+  self.prefix is Some(_)
+}
+
+///|
+#alias(is_root_path)
 pub fn UnixPath::is_absolute(self : UnixPath) -> Bool {
   self.is_absolute
 }
