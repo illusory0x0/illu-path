@@ -223,3 +223,15 @@ pub fn PathBuilder::from_path(path : Path) -> PathBuilder {
     }
   }
 }
+
+///|
+pub fn PathBuilder::to_path(self : PathBuilder) -> Path {
+  match self.prefix {
+    Some(prefix) =>
+      // windows path 
+      ...
+    None =>
+      // unix path 
+      ...
+  }
+}
