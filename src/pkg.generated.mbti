@@ -75,6 +75,17 @@ impl Hash for Path
 impl Show for Path
 impl ToJson for Path
 
+type PathBuilder
+fn PathBuilder::add_directory(Self, String) -> Unit raise PathError
+fn PathBuilder::from_path(Path) -> Self
+fn PathBuilder::output(Self, &Logger) -> Unit // from trait `Show`
+fn PathBuilder::set_basename(Self, String) -> Unit raise PathError
+fn PathBuilder::set_extension(Self, String) -> Unit raise PathError
+fn PathBuilder::set_file(Self, base~ : String, extension~ : String) -> Unit raise PathError
+fn PathBuilder::to_path(Self) -> Path
+fn PathBuilder::to_string(Self) -> String // from trait `Show`
+impl Show for PathBuilder
+
 pub struct UnixPath {
   is_absolute : Bool
   directory : Directory[UnixPathComponent]
@@ -114,7 +125,7 @@ impl Show for UnixPathComponent
 impl ToJson for UnixPathComponent
 
 pub struct WinPath {
-  prefix : WinPrefix?
+  prefix : WinPrefix
   directory : Directory[WinPathComponent]
   file : File[WinPathComponent]?
 }
@@ -160,6 +171,7 @@ pub(all) enum WinPrefix {
   DeviceNS(device~ : String)
   UNC(hostname~ : String, shared_folder~ : String)
   VolumeLetter(Char)
+  None
 }
 fn WinPrefix::equal(Self, Self) -> Bool // from trait `Eq`
 fn WinPrefix::hash(Self) -> Int // from trait `Hash`

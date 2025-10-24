@@ -493,7 +493,7 @@ pub fn WinPath::is_absolute(self : WinPath) -> Bool {
 
 ///|
 pub fn WinPath::is_relative(self : WinPath) -> Bool {
-  self.prefix is ((Root) | None)
+  self.prefix is (Root | None)
 }
 
 ///|
@@ -555,7 +555,7 @@ pub fn Path::file(self : Path) -> File[String]? {
 ///|
 pub fn Path::prefix(self : Path) -> String {
   match self {
-    WPath({ prefix: (prefix), .. }) => prefix.to_string()
+    WPath({ prefix, .. }) => prefix.to_string()
     UPath({ is_absolute: true, .. }) => "/"
     UPath({ is_absolute: false, .. }) => ""
   }

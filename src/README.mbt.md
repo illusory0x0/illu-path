@@ -5,10 +5,10 @@
 ### PathBuilder Usage
 
 ```mbt
+///|
 test {
   let path = @path.Path::parse("./projects/")
   let builder = @path.PathBuilder::from_path(path)
-
   builder.set_extension("md")
   builder.set_basename("README")
   inspect(builder, content="projects/README.md")
@@ -16,18 +16,18 @@ test {
 
   // pop last file, and add new directory
   inspect(builder, content="projects/proj_1/")
-
 }
 ```
 
 ```mbt
+///|
 test {
   let path = @path.Path::parse("C:\\projects\\")
   let builder = @path.PathBuilder::from_path(path)
-  builder.set_file(base="README",extension="md")
+  builder.set_file(base="README", extension="md")
   inspect(builder, content="C:\\projects\\README.md")
   builder.add_directory("proj_1")
-  
+
   // pop last file, and add new directory
   inspect(builder, content="C:\\projects\\proj_1\\")
 }
