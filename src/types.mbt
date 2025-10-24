@@ -276,6 +276,16 @@ pub fn Path::file(self : Path) -> File[String]? {
 }
 
 ///|
+pub fn Path::prefix(self : Path) -> String {
+  match self {
+    WPath({ prefix: Some(prefix), .. }) => prefix.to_string()
+    WPath({ prefix: None, .. }) => ""
+    UPath({ is_absolute: true, .. }) => "/"
+    UPath({ is_absolute: false, .. }) => ""
+  }
+}
+
+///|
 pub fn Path::directory(self : Path) -> Directory[String] {
   match self {
     // if compiler can optimize this overhead, we not need use `"%identity"` instrinsic instruction
