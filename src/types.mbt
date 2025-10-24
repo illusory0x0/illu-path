@@ -117,7 +117,7 @@ fn is_windows_reserved_character(ch : Char) -> Bool {
     | '?'
     | '*'
     | '\u0000'
-    | '\u0001'..='\u0031' => true
+    | '\u0001'..='\u001F' => true
     _ => false
   }
 }
