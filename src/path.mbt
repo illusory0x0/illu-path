@@ -141,7 +141,6 @@ pub fn Path::parse(path : String) -> Path raise PathError {
         start=0,
         message="Invalid Windows path: Verbatim prefix can use for relative path",
       )
-    // This pattern would exact match the whole path string
     ("\\\\\?\\Volume[{]" ("[^}]+" as guid) "[}]") =>
       win_path(prefix=VerbatimVolumeGUID(guid.to_string()))
     ("\\\\\?UNC\\" ("[^\\]+" as hostname) "\\" ("[^\\]+" as shared_folder) "\\") =>
@@ -168,8 +167,6 @@ pub fn Path::parse(path : String) -> Path raise PathError {
         file?,
       )
     }
-    ("\\\\\?\\Volume[{]" ("[^}]+" as guid) "[}]") =>
-      win_path(prefix=VerbatimVolumeGUID(guid.to_string()))
     (
       (
         "\\\\\?UNC\\"
