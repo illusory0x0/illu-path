@@ -354,13 +354,13 @@ fn WinPathComponent::from(
 ) -> WinPathComponent raise PathError {
   guard !s.is_empty() else {
     raise PathError::PathError(
-      start=0,
+      start~,
       message="Windows path: empty path component not allowed",
     )
   }
   guard !windows_reserved_names_set.contains(s) else {
     raise PathError::PathError(
-      start=0,
+      start~,
       message="Windows path: '\{s}' is a reserved name (CON, PRN, AUX, NUL, COM1-9, LPT1-9)",
     )
   }
