@@ -2,6 +2,8 @@
 
 ## Examples 
 
+### Path Kinds Examples 
+
 ```mbt
 test "Unix relative path" {
     let path = @path.Path::parse("home/username/proj/src/README.mbt.md");
