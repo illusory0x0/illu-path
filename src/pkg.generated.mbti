@@ -67,6 +67,7 @@ fn Path::is_root_path(Self) -> Bool
 fn Path::op_equal(Self, Self) -> Bool // from trait `Eq`
 fn Path::output(Self, &Logger) -> Unit // from trait `Show`
 fn Path::parse(String) -> Self raise PathError
+fn Path::prefix(Self) -> String
 fn Path::to_json(Self) -> Json // from trait `ToJson`
 fn Path::to_string(Self) -> String // from trait `Show`
 impl Eq for Path
