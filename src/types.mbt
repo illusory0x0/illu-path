@@ -176,8 +176,8 @@ struct PathBuilder {
   prefix : WinPrefix?
   is_absolute : Bool
   directory : Array[String]
-  mut basename : String?
-  mut extension : String?
+  basename : String?
+  extension : String?
 }
 
 ///|
@@ -227,11 +227,43 @@ pub fn PathBuilder::from_path(path : Path) -> PathBuilder {
 ///|
 pub fn PathBuilder::to_path(self : PathBuilder) -> Path {
   match self.prefix {
-    Some(prefix) =>
-      // windows path 
-      ...
-    None =>
-      // unix path 
-      ...
+    Some(prefix) => {
+      // windows path
+      let components : Array[WinPathComponent] = self.directory[:]
+        .iter()
+        .map(x => WinPathComponent(x))
+        .collect()
+      let directory = Directory(FixedArray::from_array(components))
+      let file : WinFile? = match self.basename {
+        Some(b) => {
+          let ext : WinPathComponent? = match self.extension {
+            Some(e) => Some(WinPathComponent(e))
+            None => None
+          }
+          Some(File::{ base: WinPathComponent(b), extension: ext })
+        }
+        None => None
+      }
+      WPath(WinPath::new(prefix~, directory~, file?))
+    }
+    None => {
+      // unix path
+      let components : Array[UnixPathComponent] = self.directory[:]
+        .iter()
+        .map(x => UnixPathComponent(x))
+        .collect()
+      let directory = Directory(FixedArray::from_array(components))
+      let file : UnixFile? = match self.basename {
+        Some(b) => {
+          let ext : UnixPathComponent? = match self.extension {
+            Some(e) => Some(UnixPathComponent(e))
+            None => None
+          }
+          Some(File::{ base: UnixPathComponent(b), extension: ext })
+        }
+        None => None
+      }
+      UPath(UnixPath::new(is_absolute=self.is_absolute, directory~, file?))
+    }
   }
 }
