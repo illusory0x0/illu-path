@@ -2,6 +2,25 @@
 
 ## Examples 
 
+### PathBuilder Usage
+
+```mbt
+test {
+  let path = @path.Path::parse("./projects/")
+  let builder = @path.PathBuilder::from_path(path)
+
+  builder.set_extension("md")
+  builder.set_basename("README")
+  inspect(builder.to_path(), content="projects/README.md")
+  builder.add_directory("proj_1")
+
+  // pop last file, and add new directory
+  inspect(builder.to_path(), content="projects/proj_1/")
+
+}
+```
+
+
 ### Simple Usage 
 
 ```mbt

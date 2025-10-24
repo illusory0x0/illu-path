@@ -176,8 +176,8 @@ struct PathBuilder {
   prefix : WinPrefix?
   is_absolute : Bool
   directory : Array[String]
-  basename : String?
-  extension : String?
+  mut basename : String?
+  mut extension : String?
 }
 
 ///|
@@ -266,4 +266,90 @@ pub fn PathBuilder::to_path(self : PathBuilder) -> Path {
       UPath(UnixPath::new(is_absolute=self.is_absolute, directory~, file?))
     }
   }
+}
+
+///|
+/// When PathBuilder containes filename add_directory would pop this filename, and then add directory in its parent directory
+pub fn PathBuilder::add_directory(
+  self : PathBuilder,
+  directory : String,
+) -> Unit raise PathError {
+  match self.prefix {
+    Some(_) => {
+      // windows path
+      // If there is a basename (filename) remove it, then push the new directory
+      if self.basename is Some(_) {
+        self.basename = None
+        self.extension = None
+      }
+      let _comp = WinPathComponent::from(directory, start=0)
+      self.directory.push(_comp.0)
+    }
+    None => {
+      // unix path
+      if self.basename is Some(_) {
+        self.basename = None
+        self.extension = None
+      }
+      let _comp = UnixPathComponent::from(directory, start=0)
+      self.directory.push(_comp.0)
+    }
+  }
+}
+
+///|
+pub fn PathBuilder::set_basename(
+  self : PathBuilder,
+  basename : String,
+) -> Unit raise PathError {
+  match self.prefix {
+    Some(_) => {
+      // windows path
+      let comp = WinPathComponent::from(basename, start=0)
+      self.basename = Some(comp.0)
+    }
+    None => {
+      // unix path
+      let comp = UnixPathComponent::from(basename, start=0)
+      self.basename = Some(comp.0)
+    }
+  }
+}
+
+///|
+pub fn PathBuilder::set_extension(
+  self : PathBuilder,
+  extension : String,
+) -> Unit raise PathError {
+  match self.prefix {
+    Some(_) => {
+      // windows path
+      // validate extension (must not contain '.') using WinPathComponent rules
+      for i, ch in extension {
+        if ch == '.' {
+          raise PathError(
+            start=i,
+            message="Extension must not contain '.' character.",
+          )
+        }
+      }
+      let comp = WinPathComponent::from(extension, start=0)
+      self.extension = Some(comp.0)
+    }
+    None => {
+      // unix path
+      let comp = UnixPathComponent::from(extension, start=0)
+      self.extension = Some(comp.0)
+    }
+  }
+}
+
+///|
+pub fn PathBuilder::set_file(
+  self : PathBuilder,
+  base~ : String,
+  extension~ : String,
+) -> Unit raise PathError {
+  self.set_basename(base)
+  self.set_extension(extension)
 }

@@ -165,6 +165,44 @@ pub impl Show for Path with output(self, logger) {
 }
 
 ///|
+pub impl Show for PathBuilder with output(self, logger) {
+  match self {
+    { prefix: Some(prefix), directory, basename, extension, .. } => {
+      // windows style
+      logger.write_object(prefix)
+      for component in directory {
+        logger.write_string(component)
+        logger.write_char(BackSlash)
+      }
+      if basename is Some(b) {
+        logger.write_string(b)
+        if extension is Some(ext) {
+          logger.write_char('.')
+          logger.write_string(ext)
+        }
+      }
+    }
+    { prefix: None, is_absolute, directory, basename, extension } => {
+      // unix style
+      if is_absolute {
+        logger.write_char(Slash)
+      }
+      for component in directory {
+        logger.write_string(component)
+        logger.write_char(Slash)
+      }
+      if basename is Some(b) {
+        logger.write_string(b)
+        if extension is Some(ext) {
+          logger.write_char('.')
+          logger.write_string(ext)
+        }
+      }
+    }
+  }
+}
+
+///|
 test "unix path" {
   let path = UnixPath::new(directory=Directory::new(["username", ".moon"]))
   inspect(path, content="username/.moon/")
