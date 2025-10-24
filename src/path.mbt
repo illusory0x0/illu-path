@@ -112,8 +112,8 @@ fn win_path(
 }
 
 ///|
-pub fn Path::parse(s : String) -> Path raise PathError {
-  lexmatch s with longest {
+pub fn Path::parse(path : String) -> Path raise PathError {
+  lexmatch path with longest {
     /// without  rest cases 
     ("\\\\\?\\" ("[^\\]+" as symlink)) =>
       win_path(prefix=VerbatimSymlink(symlink=symlink.to_string()))
@@ -260,11 +260,28 @@ pub fn Path::parse(s : String) -> Path raise PathError {
       )
       win_path(directory~, file?)
     }
+    ("[^\\]+\\", _) => {
+      let (directory, file) = parse_windows_relative_path(
+        path,
+        start=0,
+        root_eliminate=false,
+      )
+      win_path(directory~, file?)
+    }
+
     // current path 
     ("\./" as prefix, rest) => {
       let (directory, file) = parse_unix_relative_path(
         rest,
         start=prefix.char_length(),
+        root_eliminate=false,
+      )
+      UPath(UnixPath::new(directory~, file?))
+    }
+    ("[^/]+/", _) => {
+      let (directory, file) = parse_unix_relative_path(
+        path,
+        start=0,
         root_eliminate=false,
       )
       UPath(UnixPath::new(directory~, file?))

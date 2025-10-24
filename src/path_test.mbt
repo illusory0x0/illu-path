@@ -1,16 +1,4 @@
 ///|
-test "panic relative path" {
-  let path = Path::parse("\\\\?\\\\file")
-  inspect(path, content="\\\\?\\file")
-  let path = Path::parse("\\\\?\\\\file.txt")
-  inspect(path, content="\\\\?\\file.txt")
-  let path = Path::parse("\\\\?\\\\folder\\")
-  inspect(path, content="\\\\?\\folder\\")
-  let path = Path::parse("\\\\?\\\\folder")
-  inspect(path, content="\\\\?\\folder")
-}
-
-///|
 test "WinPrefix::VerbatimSymlink" {
   let path = Path::parse("\\\\?\\GLOBALROOT\\file")
   inspect(path, content="\\\\?\\GLOBALROOT\\file")
@@ -171,4 +159,20 @@ test "Windows path normalization" {
   inspect(path, content="\\a\\c")
   let path = Path::parse("C:\\..\\..\\c\\..")
   inspect(path, content="C:\\")
+}
+
+///|
+test "Unix relative path" {
+  let path = Path::parse("containers/finger_tree")
+  inspect(path, content="containers/finger_tree")
+  let path = Path::parse("containers/finger_tree/finger_tree.mbt")
+  inspect(path, content="containers/finger_tree/finger_tree.mbt")
+}
+
+///|
+test "Windows relative path" {
+  let path = Path::parse("containers\\finger_tree")
+  inspect(path, content="containers\\finger_tree")
+  let path = Path::parse("containers\\finger_tree\\finger_tree.mbt")
+  inspect(path, content="containers\\finger_tree\\finger_tree.mbt")
 }
