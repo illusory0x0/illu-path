@@ -57,6 +57,7 @@ const BackSlash : Char = '\\'
 ///|
 pub impl Show for WinPrefix with output(self, logger) {
   match self {
+    Root => logger.write_char(BackSlash)
     VerbatimSymlink(symlink~) => {
       logger.write_string(VerbatimPrefix)
       logger.write_string(symlink)
