@@ -169,4 +169,6 @@ test "Windows path normalization" {
   inspect(path, content="\\")
   let path = Path::parse("\\..\\a\\b\\..\\c")
   inspect(path, content="\\a\\c")
+  let path = Path::parse("C:\\..\\..\\c\\..")
+  inspect(path, content="C:\\")
 }
