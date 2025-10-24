@@ -1,19 +1,27 @@
 ///|
 trait IsString {
-  str(Self) -> String
+  to_string(Self) -> String
 }
 
 ///|
-impl IsString for StringView with str(self) = "%identity"
+pub impl IsString for StringView with to_string(self) = "%identity"
 
 ///|
-impl IsString for String with str(self) = "%identity"
+pub impl IsString for String with to_string(self) = "%identity"
 
 ///|
-impl IsString for WinPathComponent with str(self) = "%identity"
+pub impl IsString for WinPathComponent with to_string(self) = "%identity"
 
 ///|
-impl IsString for UnixPathComponent with str(self) = "%identity"
+pub impl IsString for UnixPathComponent with to_string(self) = "%identity"
+
+///|
+pub impl[A : IsString] Show for Directory[A] with output(self, logger) {
+  for component in self {
+    logger.write_string(component.to_string())
+    logger.write_char('/')
+  }
+}
 
 ///|
 pub impl Show for WinPathComponent with output(self, logger) {
@@ -33,10 +41,10 @@ pub impl Show for UnixPathComponent with to_string(self) = "%identity"
 
 ///|
 pub impl[A : IsString] Show for File[A] with output(self, logger) {
-  logger.write_string(self.base.str())
+  logger.write_string(self.base.to_string())
   if self.extension is Some(ext) {
     logger.write_char('.')
-    logger.write_string(ext.str())
+    logger.write_string(ext.to_string())
   }
 }
 

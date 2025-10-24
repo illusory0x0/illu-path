@@ -265,13 +265,13 @@ pub fn Path::file(self : Path) -> File[String]? {
 pub fn Path::directory(self : Path) -> Directory[String] {
   match self {
     // if compiler can optimize this overhead, we not need use `"%identity"` instrinsic instruction
-    WPath({ directory, .. }) => directory.0.map(IsString::str)
-    UPath({ directory, .. }) => directory.0.map(IsString::str)
+    WPath({ directory, .. }) => directory.0.map(IsString::to_string)
+    UPath({ directory, .. }) => directory.0.map(IsString::to_string)
   }
 }
 
 ///|
 pub fn[A : IsString] File::extension(self : File[A]) -> String? {
   // if compiler can optimize this overhead, we not need use `"%identity"` instrinsic instruction
-  self.extension.map(IsString::str)
+  self.extension.map(IsString::to_string)
 }
