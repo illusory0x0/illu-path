@@ -15,15 +15,6 @@ pub struct WinPath {
 } derive(ToJson, Hash, Eq)
 
 ///|
-pub fn WinPath::new(
-  prefix? : WinPrefix,
-  directory~ : WinDirectory,
-  file? : WinFile,
-) -> WinPath {
-  WinPath::{ prefix, directory, file }
-}
-
-///|
 /// 
 /// #### Verbatim Prefix
 /// 
@@ -91,38 +82,6 @@ pub(all) enum WinPrefix {
 } derive(ToJson, Hash, Eq)
 
 ///|
-let windows_reserved_names : FixedArray[String] = [
-  ///
-  "CON", "PRN", "AUX", "NUL",
-  ///
-   "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
-  ///
-   "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
-  ///
-   "COM\u00b9", "COM\u00b2", "COM\u00b3",
-  ///
-   "LPT\u00b9", "LPT\u00b2", "LPT\u00b3",
-]
-
-///|
-fn is_windows_reserved_character(ch : Char) -> Bool {
-  match ch {
-    '<'
-    | '>'
-    | ':'
-    | '\"'
-    | '/'
-    | '\\'
-    | '|'
-    | '?'
-    | '*'
-    | '\u0000'
-    | '\u0001'..='\u001F' => true
-    _ => false
-  }
-}
-
-///|
 /// [Posix 4.13 Pathname Resolution](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap04.html#tag_04_13)
 /// 
 /// 
@@ -131,15 +90,6 @@ pub struct UnixPath {
   directory : UnixDirectory
   file : UnixFile?
 } derive(ToJson, Hash, Eq)
-
-///|
-pub fn UnixPath::new(
-  is_absolute? : Bool = false,
-  directory~ : UnixDirectory,
-  file? : UnixFile,
-) -> UnixPath {
-  UnixPath::{ is_absolute, directory, file }
-}
 
 ///|
 pub struct File[Component] {
@@ -163,27 +113,6 @@ pub typealias File[UnixPathComponent] as UnixFile
 struct Directory[Component](FixedArray[Component]) derive(ToJson, Hash, Eq)
 
 ///|
-pub fn[T] Directory::op_get(self : Directory[T], index : Int) -> T = "%fixedarray.get"
-
-///|
-pub fn[T] Directory::length(self : Directory[T]) -> Int = "%fixedarray.length"
-
-///|
-pub fn[T] Directory::iter(self : Directory[T]) -> Iter[T] {
-  FixedArray::iter(self.0)
-}
-
-///|
-#alias("_[_:_]")
-pub fn[T] Directory::sub(
-  self : Directory[T],
-  start? : Int = 0,
-  end? : Int = self.length(),
-) -> ArrayView[T] {
-  FixedArray::sub(self.0, start~, end~)
-}
-
-///|
 struct WinPathComponent(String) derive(ToJson, Hash, Eq)
 
 ///|
@@ -193,11 +122,6 @@ struct UnixPathComponent(String) derive(ToJson, Hash, Eq)
 trait PlatformPath {
   from(s : StringView) -> Self raise PathError
 }
-
-///|
-let windows_reserved_names_set : Set[StringView] = Set::from_iter(
-  windows_reserved_names.iter().map(x => x),
-)
 
 ///|
 pub impl PlatformPath for WinPathComponent with from(s) {
@@ -210,92 +134,38 @@ pub(all) suberror PathError {
 } derive(Show)
 
 ///|
-pub fn WinPath::is_absolute(self : WinPath) -> Bool {
-  !self.is_relative()
-}
+let windows_reserved_names : FixedArray[String] = [
+  ///
+  "CON", "PRN", "AUX", "NUL",
+  ///
+   "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+  ///
+   "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
+  ///
+   "COM\u00b9", "COM\u00b2", "COM\u00b3",
+  ///
+   "LPT\u00b9", "LPT\u00b2", "LPT\u00b3",
+]
 
 ///|
-pub fn WinPath::is_relative(self : WinPath) -> Bool {
-  self.prefix is (Some(Root) | None)
-}
+let windows_reserved_names_set : Set[StringView] = Set::from_iter(
+  windows_reserved_names.iter().map(x => x),
+)
 
 ///|
-pub fn WinPath::is_root_path(self : WinPath) -> Bool {
-  self.prefix is Some(_)
-}
-
-///|
-#alias(is_root_path)
-pub fn UnixPath::is_absolute(self : UnixPath) -> Bool {
-  self.is_absolute
-}
-
-///|
-pub fn UnixPath::is_relative(self : UnixPath) -> Bool {
-  !self.is_absolute
-}
-
-///|
-pub fn Path::is_absolute(self : Path) -> Bool {
-  match self {
-    UPath(path) => path.is_absolute()
-    WPath(path) => path.is_absolute()
+fn is_windows_reserved_character(ch : Char) -> Bool {
+  match ch {
+    '<'
+    | '>'
+    | ':'
+    | '\"'
+    | '/'
+    | '\\'
+    | '|'
+    | '?'
+    | '*'
+    | '\u0000'
+    | '\u0001'..='\u001F' => true
+    _ => false
   }
-}
-
-///|
-pub fn Path::is_relative(self : Path) -> Bool {
-  match self {
-    UPath(path) => path.is_relative()
-    WPath(path) => path.is_relative()
-  }
-}
-
-///|
-pub fn Path::is_root_path(self : Path) -> Bool {
-  match self {
-    UPath(path) => path.is_absolute()
-    WPath(path) => path.is_root_path()
-  }
-}
-
-///|
-pub fn Path::file(self : Path) -> File[String]? {
-  match self {
-    WPath({ file: Some({ base, extension: Some(ext) }), .. }) =>
-      Some(File::{ base: base.0, extension: Some(ext.0) })
-    WPath({ file: Some({ base, extension: None }), .. }) =>
-      Some(File::{ base: base.0, extension: None })
-    UPath({ file: Some({ base, extension: Some(ext) }), .. }) =>
-      Some(File::{ base: base.0, extension: Some(ext.0) })
-    UPath({ file: Some({ base, extension: None }), .. }) =>
-      Some(File::{ base: base.0, extension: None })
-    WPath({ file: None, .. }) => None
-    UPath({ file: None, .. }) => None
-  }
-}
-
-///|
-pub fn Path::prefix(self : Path) -> String {
-  match self {
-    WPath({ prefix: Some(prefix), .. }) => prefix.to_string()
-    WPath({ prefix: None, .. }) => ""
-    UPath({ is_absolute: true, .. }) => "/"
-    UPath({ is_absolute: false, .. }) => ""
-  }
-}
-
-///|
-pub fn Path::directory(self : Path) -> Directory[String] {
-  match self {
-    // if compiler can optimize this overhead, we not need use `"%identity"` instrinsic instruction
-    WPath({ directory, .. }) => directory.0.map(IsString::to_string)
-    UPath({ directory, .. }) => directory.0.map(IsString::to_string)
-  }
-}
-
-///|
-pub fn[A : IsString] File::extension(self : File[A]) -> String? {
-  // if compiler can optimize this overhead, we not need use `"%identity"` instrinsic instruction
-  self.extension.map(IsString::to_string)
 }

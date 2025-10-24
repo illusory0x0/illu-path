@@ -446,3 +446,133 @@ pub impl PlatformPath for UnixPathComponent with from(s) {
   }
   UnixPathComponent(s.to_string())
 }
+
+///|
+pub fn WinPath::new(
+  prefix? : WinPrefix,
+  directory~ : WinDirectory,
+  file? : WinFile,
+) -> WinPath {
+  WinPath::{ prefix, directory, file }
+}
+
+///|
+pub fn UnixPath::new(
+  is_absolute? : Bool = false,
+  directory~ : UnixDirectory,
+  file? : UnixFile,
+) -> UnixPath {
+  UnixPath::{ is_absolute, directory, file }
+}
+
+///|
+pub fn[T] Directory::op_get(self : Directory[T], index : Int) -> T = "%fixedarray.get"
+
+///|
+pub fn[T] Directory::length(self : Directory[T]) -> Int = "%fixedarray.length"
+
+///|
+pub fn[T] Directory::iter(self : Directory[T]) -> Iter[T] {
+  FixedArray::iter(self.0)
+}
+
+///|
+#alias("_[_:_]")
+pub fn[T] Directory::sub(
+  self : Directory[T],
+  start? : Int = 0,
+  end? : Int = self.length(),
+) -> ArrayView[T] {
+  FixedArray::sub(self.0, start~, end~)
+}
+
+///|
+pub fn WinPath::is_absolute(self : WinPath) -> Bool {
+  !self.is_relative()
+}
+
+///|
+pub fn WinPath::is_relative(self : WinPath) -> Bool {
+  self.prefix is (Some(Root) | None)
+}
+
+///|
+pub fn WinPath::is_root_path(self : WinPath) -> Bool {
+  self.prefix is Some(_)
+}
+
+///|
+#alias(is_root_path)
+pub fn UnixPath::is_absolute(self : UnixPath) -> Bool {
+  self.is_absolute
+}
+
+///|
+pub fn UnixPath::is_relative(self : UnixPath) -> Bool {
+  !self.is_absolute
+}
+
+///|
+pub fn Path::is_absolute(self : Path) -> Bool {
+  match self {
+    UPath(path) => path.is_absolute()
+    WPath(path) => path.is_absolute()
+  }
+}
+
+///|
+pub fn Path::is_relative(self : Path) -> Bool {
+  match self {
+    UPath(path) => path.is_relative()
+    WPath(path) => path.is_relative()
+  }
+}
+
+///|
+pub fn Path::is_root_path(self : Path) -> Bool {
+  match self {
+    UPath(path) => path.is_absolute()
+    WPath(path) => path.is_root_path()
+  }
+}
+
+///|
+pub fn Path::file(self : Path) -> File[String]? {
+  match self {
+    WPath({ file: Some({ base, extension: Some(ext) }), .. }) =>
+      Some(File::{ base: base.0, extension: Some(ext.0) })
+    WPath({ file: Some({ base, extension: None }), .. }) =>
+      Some(File::{ base: base.0, extension: None })
+    UPath({ file: Some({ base, extension: Some(ext) }), .. }) =>
+      Some(File::{ base: base.0, extension: Some(ext.0) })
+    UPath({ file: Some({ base, extension: None }), .. }) =>
+      Some(File::{ base: base.0, extension: None })
+    WPath({ file: None, .. }) => None
+    UPath({ file: None, .. }) => None
+  }
+}
+
+///|
+pub fn Path::prefix(self : Path) -> String {
+  match self {
+    WPath({ prefix: Some(prefix), .. }) => prefix.to_string()
+    WPath({ prefix: None, .. }) => ""
+    UPath({ is_absolute: true, .. }) => "/"
+    UPath({ is_absolute: false, .. }) => ""
+  }
+}
+
+///|
+pub fn Path::directory(self : Path) -> Directory[String] {
+  match self {
+    // if compiler can optimize this overhead, we not need use `"%identity"` instrinsic instruction
+    WPath({ directory, .. }) => directory.0.map(IsString::to_string)
+    UPath({ directory, .. }) => directory.0.map(IsString::to_string)
+  }
+}
+
+///|
+pub fn[A : IsString] File::extension(self : File[A]) -> String? {
+  // if compiler can optimize this overhead, we not need use `"%identity"` instrinsic instruction
+  self.extension.map(IsString::to_string)
+}
