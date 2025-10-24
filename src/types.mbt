@@ -272,7 +272,7 @@ pub fn PathBuilder::to_path(self : PathBuilder) -> Path {
 /// When PathBuilder contains filename add_directory would pop this filename, and then add directory in its parent directory
 pub fn PathBuilder::add_directory(
   self : PathBuilder,
-  directory : String,
+  directory : StringView,
 ) -> Unit raise PathError {
   match self.prefix {
     Some(_) => {
@@ -300,7 +300,7 @@ pub fn PathBuilder::add_directory(
 ///|
 pub fn PathBuilder::set_basename(
   self : PathBuilder,
-  basename : String,
+  basename : StringView,
 ) -> Unit raise PathError {
   match self.prefix {
     Some(_) => {
@@ -319,7 +319,7 @@ pub fn PathBuilder::set_basename(
 ///|
 pub fn PathBuilder::set_extension(
   self : PathBuilder,
-  extension : String,
+  extension : StringView,
 ) -> Unit raise PathError {
   match self.prefix {
     Some(_) => {
@@ -347,8 +347,8 @@ pub fn PathBuilder::set_extension(
 ///|
 pub fn PathBuilder::set_file(
   self : PathBuilder,
-  base~ : String,
-  extension~ : String,
+  base~ : StringView,
+  extension~ : StringView,
 ) -> Unit raise PathError {
   self.set_basename(base)
   self.set_extension(extension)
