@@ -2,6 +2,16 @@
 
 ## Examples 
 
+```mbt
+test "type safe directory components" {
+    let path = @path.Path::parse("/home/username/proj/src/");
+    guard path is UPath(path) else { panic() }
+    let parent_dir : ArrayView[@path.UnixPathComponent] = path.directory[0:path.directory.length()-1]
+    @json.inspect(parent_dir, content=([["UnixPathComponent","home"],["UnixPathComponent","username"],["UnixPathComponent","proj"]]))
+}
+```
+
+
 ### Path Kinds Examples 
 
 ```mbt
