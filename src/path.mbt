@@ -112,6 +112,7 @@ fn win_path(
 }
 
 ///|
+/// Parsing path from string used prefix based detection to determine the path format style (Windows/Unix)
 pub fn Path::parse(path : String) -> Path raise PathError {
   lexmatch path with longest {
     // this pattern exect match the whole path string
