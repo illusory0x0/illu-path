@@ -140,6 +140,7 @@ impl Show for WinPathComponent
 impl ToJson for WinPathComponent
 
 pub(all) enum WinPrefix {
+  Root
   VerbatimSymlink(symlink~ : String)
   VerbatimUNC(hostname~ : String, shared_folder~ : String)
   VerbatimVolumeLetter(Char)

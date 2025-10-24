@@ -138,3 +138,35 @@ test "Unix absolute path" {
   let path = Path::parse("/")
   inspect(path, content="/")
 }
+
+///|
+test "Unix path normalization" {
+  let path = Path::parse("./a/b/./c/../d/../..")
+  inspect(path, content="a/")
+  let path = Path::parse("/a/b/..")
+  inspect(path, content="/a/")
+  let path = Path::parse("/../..")
+  inspect(path, content="/")
+  let path = Path::parse("/../a/b/../c/../../..")
+  inspect(path, content="/")
+  let path = Path::parse("/../a/b/../c/../..")
+  inspect(path, content="/")
+  let path = Path::parse("/../a/b/../c")
+  inspect(path, content="/a/c")
+}
+
+///|
+test "Windows path normalization" {
+  let path = Path::parse(".\\a\\b\\.\\c\\..\\d\\..\\..")
+  inspect(path, content="a\\")
+  let path = Path::parse("\\a\\b\\..")
+  inspect(path, content="\\a\\")
+  let path = Path::parse("\\..\\..\\")
+  inspect(path, content="\\")
+  let path = Path::parse("\\..\\a\\b\\..\\c\\..\\..\\..")
+  inspect(path, content="\\")
+  let path = Path::parse("\\..\\a\\b\\..\\c\\..\\..")
+  inspect(path, content="\\")
+  let path = Path::parse("\\..\\a\\b\\..\\c")
+  inspect(path, content="\\a\\c")
+}

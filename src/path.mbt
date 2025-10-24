@@ -2,6 +2,7 @@
 fn parse_windows_relative_path(
   s : StringView,
   start~ : Int,
+  root_eliminate~ : Bool,
 ) -> (WinDirectory, WinFile?) raise PathError {
   let mut rest = s
   let directory : Array[WinPathComponent] = []
@@ -11,13 +12,35 @@ fn parse_windows_relative_path(
       ((("[^\\]+" as s) "\\") as all, r) => {
         match s {
           "." => ()
-          ".." => directory.pop() |> ignore
+          ".." =>
+            match (directory.pop(), root_eliminate) {
+              (Some(WinPathComponent("..")), _) => {
+                directory.push(WinPathComponent(".."))
+                directory.push(WinPathComponent(".."))
+              }
+              (None, true) => ()
+              (None, false) => directory.push(WinPathComponent(".."))
+              (Some(_), _) => ()
+            }
           _ => directory.push(WinPathComponent::from(s, start~))
         }
         start += all.char_length()
         rest = r
       }
-      (("[^\\.]+" as base) "\." ("[^\\]+" as extension)) =>
+      "\.\." => {
+        match (directory.pop(), root_eliminate) {
+          (Some(WinPathComponent("..")), _) => {
+            directory.push(WinPathComponent(".."))
+            directory.push(WinPathComponent(".."))
+          }
+          (None, true) => ()
+          (None, false) => directory.push(WinPathComponent(".."))
+          (Some(_), _) => ()
+        }
+        break None
+      }
+      "\." => break None
+      (("[^\\]+" as base) "\." ("[^.\\]+" as extension)) =>
         break Some(WinFile::new(base~, extension~))
       ("[^\\.]+" as base) => break Some(WinFile::new(base~))
       "$" => break None
@@ -31,6 +54,7 @@ fn parse_windows_relative_path(
 fn parse_unix_relative_path(
   s : StringView,
   start~ : Int,
+  root_eliminate~ : Bool,
 ) -> (UnixDirectory, UnixFile?) raise PathError {
   let mut rest = s
   let directory : Array[UnixPathComponent] = []
@@ -38,10 +62,36 @@ fn parse_unix_relative_path(
   let file : UnixFile? = for {
     lexmatch rest with longest {
       ((("[^/]+" as s) "/") as all, r) => {
-        directory.push(UnixPathComponent::from(s, start~))
+        match s {
+          "." => ()
+          ".." =>
+            match (directory.pop(), root_eliminate) {
+              (Some(UnixPathComponent("..")), _) => {
+                directory.push(UnixPathComponent(".."))
+                directory.push(UnixPathComponent(".."))
+              }
+              (None, true) => ()
+              (None, false) => directory.push(UnixPathComponent(".."))
+              (Some(_), _) => ()
+            }
+          _ => directory.push(UnixPathComponent::from(s, start~))
+        }
         start += all.char_length()
         rest = r
       }
+      "\.\." => {
+        match (directory.pop(), root_eliminate) {
+          (Some(UnixPathComponent("..")), _) => {
+            directory.push(UnixPathComponent(".."))
+            directory.push(UnixPathComponent(".."))
+          }
+          (None, true) => ()
+          (None, false) => directory.push(UnixPathComponent(".."))
+          (Some(_), _) => ()
+        }
+        break None
+      }
+      "\." => break None
       (("[^/.]+" as base) "\." ("[^/]+" as extension)) =>
         break Some(UnixFile::new(base~, extension~))
       ("[^/.]+" as base) => break Some(UnixFile::new(base~))
@@ -109,6 +159,7 @@ pub fn Path::parse(s : String) -> Path raise PathError {
       let (directory, file) = parse_windows_relative_path(
         rest,
         start=prefix.char_length(),
+        root_eliminate=true,
       )
       win_path(
         prefix=VerbatimSymlink(symlink=symlink.to_string()),
@@ -132,6 +183,7 @@ pub fn Path::parse(s : String) -> Path raise PathError {
       let (directory, file) = parse_windows_relative_path(
         rest,
         start=prefix.char_length(),
+        root_eliminate=true,
       )
       win_path(
         prefix=VerbatimUNC(
@@ -150,6 +202,7 @@ pub fn Path::parse(s : String) -> Path raise PathError {
       let (directory, file) = parse_windows_relative_path(
         rest,
         start=prefix.char_length(),
+        root_eliminate=true,
       )
       win_path(
         prefix=UNC(
@@ -164,6 +217,7 @@ pub fn Path::parse(s : String) -> Path raise PathError {
       let (directory, file) = parse_windows_relative_path(
         rest,
         start=prefix.char_length(),
+        root_eliminate=true,
       )
       win_path(prefix=VerbatimVolumeGUID(guid.to_string()), directory~, file?)
     }
@@ -172,6 +226,7 @@ pub fn Path::parse(s : String) -> Path raise PathError {
       let (directory, file) = parse_windows_relative_path(
         rest,
         start=prefix.char_length(),
+        root_eliminate=true,
       )
       win_path(prefix=DeviceNS(device=device.to_string()), directory~, file?)
     }
@@ -179,6 +234,7 @@ pub fn Path::parse(s : String) -> Path raise PathError {
       let (directory, file) = parse_windows_relative_path(
         rest,
         start=prefix.char_length(),
+        root_eliminate=true,
       )
       win_path(prefix=VerbatimVolumeLetter(letter), directory~, file?)
     }
@@ -191,6 +247,7 @@ pub fn Path::parse(s : String) -> Path raise PathError {
       let (directory, file) = parse_windows_relative_path(
         rest,
         start=prefix.char_length(),
+        root_eliminate=true,
       )
       win_path(prefix=VolumeLetter(letter), directory~, file?)
     }
@@ -199,30 +256,36 @@ pub fn Path::parse(s : String) -> Path raise PathError {
       let (directory, file) = parse_windows_relative_path(
         rest,
         start=prefix.char_length(),
+        root_eliminate=false,
       )
       win_path(directory~, file?)
-    }
-    // root path but without derive letter 
-    ("\\" as prefix, rest) => {
-      let (directory, file) = parse_windows_relative_path(
-        rest,
-        start=prefix.utf16_len(),
-      )
-      win_path(prefix=Root, directory~, file?)
     }
     // current path 
     ("\./" as prefix, rest) => {
       let (directory, file) = parse_unix_relative_path(
         rest,
         start=prefix.char_length(),
+        root_eliminate=false,
       )
       UPath(UnixPath::new(directory~, file?))
     }
+
+    // root path but without derive letter 
+    ("\\" as prefix, rest) => {
+      let (directory, file) = parse_windows_relative_path(
+        rest,
+        start=prefix.utf16_len(),
+        root_eliminate=true,
+      )
+      win_path(prefix=Root, directory~, file?)
+    }
+
     // root path 
     ("/" as prefix, rest) => {
       let (directory, file) = parse_unix_relative_path(
         rest,
         start=prefix.utf16_len(),
+        root_eliminate=true,
       )
       UPath(UnixPath::new(is_absolute=true, directory~, file?))
     }
