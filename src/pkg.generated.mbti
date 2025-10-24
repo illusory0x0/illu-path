@@ -34,24 +34,27 @@ pub struct File[Component] {
   extension : Component?
 }
 fn[Component : Eq] File::equal(Self[Component], Self[Component]) -> Bool // from trait `Eq`
+fn[A : IsString] File::extension(Self[A]) -> String?
 fn[Component : Hash] File::hash(Self[Component]) -> Int // from trait `Hash`
 fn[Component : Hash] File::hash_combine(Self[Component], Hasher) -> Unit // from trait `Hash`
 fn[A : PlatformPath] File::new(base~ : StringView, extension? : StringView) -> Self[A] raise PathError
 #deprecated
 fn[Component : Eq] File::op_equal(Self[Component], Self[Component]) -> Bool // from trait `Eq`
-fn[A : Show] File::output(Self[A], &Logger) -> Unit // from trait `Show`
+fn[A : IsString] File::output(Self[A], &Logger) -> Unit // from trait `Show`
 fn[Component : ToJson] File::to_json(Self[Component]) -> Json // from trait `ToJson`
-fn[A : Show] File::to_string(Self[A]) -> String // from trait `Show`
+fn[A : IsString] File::to_string(Self[A]) -> String // from trait `Show`
 impl[Component : Eq] Eq for File[Component]
 impl[Component : Hash] Hash for File[Component]
-impl[A : Show] Show for File[A]
+impl[A : IsString] Show for File[A]
 impl[Component : ToJson] ToJson for File[Component]
 
 pub(all) enum Path {
   WPath(WinPath)
   UPath(UnixPath)
 }
+fn Path::directory(Self) -> Directory[String]
 fn Path::equal(Self, Self) -> Bool // from trait `Eq`
+fn Path::file(Self) -> File[String]?
 fn Path::hash(Self) -> Int // from trait `Hash`
 fn Path::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
 fn Path::is_absolute(Self) -> Bool
@@ -172,5 +175,7 @@ pub typealias Directory[WinPathComponent] as WinDirectory
 pub typealias File[WinPathComponent] as WinFile
 
 // Traits
+trait IsString
+
 trait PlatformPath
 
