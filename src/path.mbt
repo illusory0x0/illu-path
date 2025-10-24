@@ -564,7 +564,7 @@ pub fn Path::prefix(self : Path) -> String {
 ///|
 pub fn Path::directory(self : Path) -> Directory[String] {
   match self {
-    // if compiler can optimize this overhead, we not need use `"%identity"` instrinsic instruction
+    // if compiler can optimize this overhead, we not need use `"%identity"` intrinsic instruction
     WPath({ directory, .. }) => directory.0.map(IsString::to_string)
     UPath({ directory, .. }) => directory.0.map(IsString::to_string)
   }
@@ -572,6 +572,6 @@ pub fn Path::directory(self : Path) -> Directory[String] {
 
 ///|
 pub fn[A : IsString] File::extension(self : File[A]) -> String? {
-  // if compiler can optimize this overhead, we not need use `"%identity"` instrinsic instruction
+  // if compiler can optimize this overhead, we not need use `"%identity"` intrinsic instruction
   self.extension.map(IsString::to_string)
 }

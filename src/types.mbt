@@ -269,7 +269,7 @@ pub fn PathBuilder::to_path(self : PathBuilder) -> Path {
 }
 
 ///|
-/// When PathBuilder containes filename add_directory would pop this filename, and then add directory in its parent directory
+/// When PathBuilder contains filename add_directory would pop this filename, and then add directory in its parent directory
 pub fn PathBuilder::add_directory(
   self : PathBuilder,
   directory : String,
