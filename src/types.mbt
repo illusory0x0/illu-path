@@ -244,3 +244,34 @@ pub fn Path::is_relative(self : Path) -> Bool {
     WPath(path) => path.is_relative()
   }
 }
+
+///|
+pub fn Path::file(self : Path) -> File[String]? {
+  match self {
+    WPath({ file: Some({ base, extension: Some(ext) }), .. }) =>
+      Some(File::{ base: base.0, extension: Some(ext.0) })
+    WPath({ file: Some({ base, extension: None }), .. }) =>
+      Some(File::{ base: base.0, extension: None })
+    UPath({ file: Some({ base, extension: Some(ext) }), .. }) =>
+      Some(File::{ base: base.0, extension: Some(ext.0) })
+    UPath({ file: Some({ base, extension: None }), .. }) =>
+      Some(File::{ base: base.0, extension: None })
+    WPath({ file: None, .. }) => None
+    UPath({ file: None, .. }) => None
+  }
+}
+
+///|
+pub fn Path::directory(self : Path) -> Directory[String] {
+  match self {
+    // if compiler can optimize this overhead, we not need use `"%identity"` instrinsic instruction
+    WPath({ directory, .. }) => directory.0.map(IsString::str)
+    UPath({ directory, .. }) => directory.0.map(IsString::str)
+  }
+}
+
+///|
+pub fn[A : IsString] File::extension(self : File[A]) -> String? {
+  // if compiler can optimize this overhead, we not need use `"%identity"` instrinsic instruction
+  self.extension.map(IsString::str)
+}

@@ -92,7 +92,7 @@ fn parse_unix_relative_path(
         break None
       }
       "\." => break None
-      (("[^/.]+" as base) "\." ("[^/]+" as extension)) =>
+      (("[^/]+" as base) "\." ("[^/]+" as extension)) =>
         break Some(UnixFile::new(base~, extension~))
       ("[^/.]+" as base) => break Some(UnixFile::new(base~))
       "$" => break None
