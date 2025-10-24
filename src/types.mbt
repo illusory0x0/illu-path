@@ -251,12 +251,14 @@ pub fn Path::is_relative(self : Path) -> Bool {
   }
 }
 
+///|
 pub fn Path::is_root_path(self : Path) -> Bool {
   match self {
-    UPath(path) => path.is_absolute() 
+    UPath(path) => path.is_absolute()
     WPath(path) => path.is_root_path()
   }
 }
+
 ///|
 pub fn Path::file(self : Path) -> File[String]? {
   match self {

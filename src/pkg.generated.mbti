@@ -22,11 +22,14 @@ fn[A : PlatformPath] Directory::new(ArrayView[StringView]) -> Self[A] raise Path
 #deprecated
 fn[Component : Eq] Directory::op_equal(Self[Component], Self[Component]) -> Bool // from trait `Eq`
 fn[T] Directory::op_get(Self[T], Int) -> T
+fn[A : IsString] Directory::output(Self[A], &Logger) -> Unit // from trait `Show`
 #alias("_[_:_]")
 fn[T] Directory::sub(Self[T], start? : Int, end? : Int) -> ArrayView[T]
 fn[Component : ToJson] Directory::to_json(Self[Component]) -> Json // from trait `ToJson`
+fn[A : IsString] Directory::to_string(Self[A]) -> String // from trait `Show`
 impl[Component : Eq] Eq for Directory[Component]
 impl[Component : Hash] Hash for Directory[Component]
+impl[A : IsString] Show for Directory[A]
 impl[Component : ToJson] ToJson for Directory[Component]
 
 pub struct File[Component] {
@@ -59,6 +62,7 @@ fn Path::hash(Self) -> Int // from trait `Hash`
 fn Path::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
 fn Path::is_absolute(Self) -> Bool
 fn Path::is_relative(Self) -> Bool
+fn Path::is_root_path(Self) -> Bool
 #deprecated
 fn Path::op_equal(Self, Self) -> Bool // from trait `Eq`
 fn Path::output(Self, &Logger) -> Unit // from trait `Show`
@@ -78,6 +82,7 @@ pub struct UnixPath {
 fn UnixPath::equal(Self, Self) -> Bool // from trait `Eq`
 fn UnixPath::hash(Self) -> Int // from trait `Hash`
 fn UnixPath::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
+#alias(is_root_path)
 fn UnixPath::is_absolute(Self) -> Bool
 fn UnixPath::is_relative(Self) -> Bool
 fn UnixPath::new(is_absolute? : Bool, directory~ : Directory[UnixPathComponent], file? : File[UnixPathComponent]) -> Self
@@ -100,6 +105,7 @@ fn UnixPathComponent::op_equal(Self, Self) -> Bool // from trait `Eq`
 fn UnixPathComponent::output(Self, &Logger) -> Unit // from trait `Show`
 fn UnixPathComponent::to_json(Self) -> Json // from trait `ToJson`
 fn UnixPathComponent::to_string(Self) -> String // from trait `Show`
+impl IsString for UnixPathComponent
 impl PlatformPath for UnixPathComponent
 impl Eq for UnixPathComponent
 impl Hash for UnixPathComponent
@@ -116,6 +122,7 @@ fn WinPath::hash(Self) -> Int // from trait `Hash`
 fn WinPath::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
 fn WinPath::is_absolute(Self) -> Bool
 fn WinPath::is_relative(Self) -> Bool
+fn WinPath::is_root_path(Self) -> Bool
 fn WinPath::new(prefix? : WinPrefix, directory~ : Directory[WinPathComponent], file? : File[WinPathComponent]) -> Self
 #deprecated
 fn WinPath::op_equal(Self, Self) -> Bool // from trait `Eq`
@@ -136,6 +143,7 @@ fn WinPathComponent::op_equal(Self, Self) -> Bool // from trait `Eq`
 fn WinPathComponent::output(Self, &Logger) -> Unit // from trait `Show`
 fn WinPathComponent::to_json(Self) -> Json // from trait `ToJson`
 fn WinPathComponent::to_string(Self) -> String // from trait `Show`
+impl IsString for WinPathComponent
 impl PlatformPath for WinPathComponent
 impl Eq for WinPathComponent
 impl Hash for WinPathComponent
@@ -176,6 +184,8 @@ pub typealias File[WinPathComponent] as WinFile
 
 // Traits
 trait IsString
+impl IsString for String
+impl IsString for StringView
 
 trait PlatformPath
 
