@@ -24,3 +24,14 @@ test "Unix absolute path" {
     inspect(path.is_root_path(), content="true")
 }
 ```
+
+```mbt 
+test "Windows relative path" {
+    let path = @path.Path::parse("Users\\username\\proj\\src\\README.mbt.md");
+    inspect(path.directory(), content="Users/username/proj/src/")
+    inspect(path.file().unwrap(), content="README.mbt.md")
+    inspect(path.is_absolute(), content="false")
+    inspect(path.is_relative(), content="true")
+    inspect(path.is_root_path(), content="false")
+}
+```
