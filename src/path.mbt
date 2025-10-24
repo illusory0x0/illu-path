@@ -292,20 +292,20 @@ pub fn Path::parse(path : String) -> Path raise PathError {
     }
 
     // root path but without derive letter 
-    ("\\" as prefix, rest) => {
+    ("\\", rest) => {
       let (directory, file) = parse_windows_relative_path(
         rest,
-        start=prefix.utf16_len(),
+        start=1,
         root_eliminate=true,
       )
       win_path(prefix=Root, directory~, file?)
     }
 
     // root path 
-    ("/" as prefix, rest) => {
+    ("/", rest) => {
       let (directory, file) = parse_unix_relative_path(
         rest,
-        start=prefix.utf16_len(),
+        start=1,
         root_eliminate=true,
       )
       UPath(UnixPath::new(is_absolute=true, directory~, file?))
