@@ -1,6 +1,4 @@
-
-
-# illu-path
+# illusory0x0/path
 
 A MoonBit library for cross-platform path manipulation, supporting both Unix and Windows path styles with type-safe operations.
 
