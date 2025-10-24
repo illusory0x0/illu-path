@@ -15,4 +15,3 @@ test "panic verbatim can not use in relative path" {
   let path = try! Path::parse("\\\\?\\\\folder")
   inspect(path, content="\\\\?\\folder")
 }
-
