@@ -1,5 +1,5 @@
 ///|
-test "WinPrefix::VerbatimRoot" {
+test "panic relative path" {
   let path = Path::parse("\\\\?\\\\file")
   inspect(path, content="\\\\?\\file")
   let path = Path::parse("\\\\?\\\\file.txt")

@@ -48,10 +48,6 @@ pub fn WinPath::new(
 /// > relative paths are always limited to a total of MAX_PATH characters.
 /// 
 pub(all) enum WinPrefix {
-  /// Syntax: `\\?\`
-  ///
-  /// Example: `\\?\`
-  VerbatimRoot
   /// Syntax: `\\?\<SYMLINK>\` 
   ///
   /// Example: `\\?\GLOBALROOT\`

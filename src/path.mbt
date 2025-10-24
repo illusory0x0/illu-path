@@ -82,7 +82,11 @@ pub fn Path::parse(s : String) -> Path raise PathError {
     ("\\\\\?\\" ("[a-zA-Z]" as letter) ":\\") =>
       win_path(prefix=VerbatimVolumeLetter(letter))
     (("[a-zA-Z]" as letter) ":\\") => win_path(prefix=VolumeLetter(letter))
-    "\\\\\?\\\\" => win_path(prefix=VerbatimRoot)
+    ("\\\\\?\\" "\\|\.\.|\.") =>
+      raise PathError(
+        start=0,
+        message="Invalid Windows path: Verbatim prefix can use for relative path",
+      )
     ("\\\\\?\\Volume[{]" ("[^}]+" as guid) "[}]") =>
       win_path(prefix=VerbatimVolumeGUID(guid.to_string()))
     ("\\\\\?UNC\\" ("[^\\]+" as hostname) "\\" ("[^\\]+" as shared_folder) "\\") =>
@@ -174,13 +178,11 @@ pub fn Path::parse(s : String) -> Path raise PathError {
       )
       win_path(prefix=VerbatimVolumeLetter(letter), directory~, file?)
     }
-    ("\\\\\?\\\\" as prefix, rest) => {
-      let (directory, file) = parse_windows_relative_path(
-        rest,
-        start=prefix.char_length(),
+    ("\\\\\?\\" "\\|\.\.|\.", _) =>
+      raise PathError(
+        start=0,
+        message="Invalid Windows path: Verbatim prefix can use for relative path",
       )
-      win_path(prefix=VerbatimRoot, directory~, file?)
-    }
     ((("[a-zA-Z]" as letter) ":\\") as prefix, rest) => {
       let (directory, file) = parse_windows_relative_path(
         rest,
