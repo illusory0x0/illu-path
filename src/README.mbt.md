@@ -1,8 +1,14 @@
 
 
-## Examples 
+# illu-path
+
+A MoonBit library for cross-platform path manipulation, supporting both Unix and Windows path styles with type-safe operations.
+
+## Examples
 
 ### PathBuilder Usage
+
+Demonstrates building paths using PathBuilder from a relative path.
 
 ```mbt
 ///|
@@ -19,6 +25,8 @@ test {
 }
 ```
 
+Demonstrates building paths using PathBuilder from a Windows absolute path.
+
 ```mbt
 ///|
 test {
@@ -34,7 +42,9 @@ test {
 ```
 
 
-### Simple Usage 
+### Simple Usage
+
+Shows basic path operations like extracting file name, directory, and prefix.
 
 ```mbt
 ///|
@@ -48,6 +58,9 @@ test "Simple String Operations" {
 
 
 ### Type Safe Operations
+
+Illustrates type-safe access to directory components for Unix paths.
+
 ```mbt
 ///|
 test "type safe directory components" {
@@ -64,7 +77,9 @@ test "type safe directory components" {
 ```
 
 
-### Path Kinds Examples 
+### Path Kinds Examples
+
+Examples of different path kinds: relative and absolute for Unix and Windows.
 
 ```mbt
 ///|
@@ -91,11 +106,11 @@ test "Unix absolute path" {
 }
 ```
 
-```mbt 
+```mbt
 ///|
 test "Windows relative path" {
   let path = @path.Path::parse("Users\\username\\proj\\src\\README.mbt.md")
-  // This is used for Debug output 
+  // This is used for Debug output
   inspect(path.directory(), content="Users/username/proj/src/")
   inspect(path.file().unwrap(), content="README.mbt.md")
   inspect(path.is_absolute(), content="false")
@@ -108,7 +123,7 @@ test "Windows relative path" {
 ///|
 test "Windows absolute path" {
   let path = @path.Path::parse("C:\\Users\\username\\proj\\src\\README.mbt.md")
-  // This is used for Debug output 
+  // This is used for Debug output
   inspect(path.directory(), content="Users/username/proj/src/")
   inspect(path.file().unwrap(), content="README.mbt.md")
   inspect(path.is_absolute(), content="true")
@@ -122,7 +137,7 @@ test "Windows absolute path" {
 ///|
 test "Windows relative root path" {
   let path = @path.Path::parse("\\Users\\username\\proj\\src\\README.mbt.md")
-  // This is used for Debug output 
+  // This is used for Debug output
   inspect(path.directory(), content="Users/username/proj/src/")
   inspect(path.file().unwrap(), content="README.mbt.md")
   inspect(path.is_absolute(), content="false")
