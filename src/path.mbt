@@ -161,7 +161,7 @@ pub fn Path::parse(path : String) -> Path raise PathError {
         ),
       )
     (("\\\\\?\\" ("[^\\]+" as symlink) "\\") as prefix, rest) => {
-      // Waring: won't check the symlink name here
+      // Warning: won't check the symlink name here
       let (directory, file) = parse_windows_relative_path(
         rest,
         start=prefix.char_length(),
