@@ -114,9 +114,10 @@ fn win_path(
 ///|
 pub fn Path::parse(path : String) -> Path raise PathError {
   lexmatch path with longest {
-    /// without  rest cases 
+    // this pattern exect match the whole path string
     ("\\\\\?\\" ("[^\\]+" as symlink)) =>
       win_path(prefix=VerbatimSymlink(symlink=symlink.to_string()))
+    // this pattern exect match the whole path string
     ("\\\\\?UNC\\" ("[^\\]+" as hostname) "\\" ("[^\\]+" as shared_folder)) =>
       win_path(
         prefix=VerbatimUNC(
@@ -124,6 +125,7 @@ pub fn Path::parse(path : String) -> Path raise PathError {
           shared_folder=shared_folder.to_string(),
         ),
       )
+    // this pattern exect match the whole path string
     ("\\\\" ("[^\\]+" as hostname) "\\" ("[^\\]+" as shared_folder)) =>
       win_path(
         prefix=UNC(
@@ -131,18 +133,26 @@ pub fn Path::parse(path : String) -> Path raise PathError {
           shared_folder=shared_folder.to_string(),
         ),
       )
+    // this pattern exect match the whole path string
     ("\\\\\.\\" ("[^\\]+" as device)) =>
       win_path(prefix=DeviceNS(device=device.to_string()))
+    // this pattern exect match the whole path string
     ("\\\\\?\\" ("[a-zA-Z]" as letter) ":\\") =>
       win_path(prefix=VerbatimVolumeLetter(letter))
+    // this pattern exect match the whole path string
     (("[a-zA-Z]" as letter) ":\\") => win_path(prefix=VolumeLetter(letter))
+    "\.\\" =>
+      // this pattern exect match the whole path string
+      win_path()
     ("\\\\\?\\" "\\|\.\.|\.") =>
       raise PathError(
         start=0,
         message="Invalid Windows path: Verbatim prefix can use for relative path",
       )
+    // this pattern exect match the whole path string
     ("\\\\\?\\Volume[{]" ("[^}]+" as guid) "[}]") =>
       win_path(prefix=VerbatimVolumeGUID(guid.to_string()))
+    // this pattern exect match the whole path string
     ("\\\\\?UNC\\" ("[^\\]+" as hostname) "\\" ("[^\\]+" as shared_folder) "\\") =>
       win_path(
         prefix=VerbatimUNC(
@@ -150,9 +160,6 @@ pub fn Path::parse(path : String) -> Path raise PathError {
           shared_folder=shared_folder.to_string(),
         ),
       )
-
-    // with rest cases 
-
     (("\\\\\?\\" ("[^\\]+" as symlink) "\\") as prefix, rest) => {
       // Waring: won't check the symlink name here
       let (directory, file) = parse_windows_relative_path(
