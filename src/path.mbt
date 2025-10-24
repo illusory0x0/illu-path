@@ -154,8 +154,7 @@ pub fn Path::parse(path : String) -> Path raise PathError {
     // with rest cases 
 
     (("\\\\\?\\" ("[^\\]+" as symlink) "\\") as prefix, rest) => {
-
-      // TODO: check symlink name 
+      // Waring: won't check the symlink name here
       let (directory, file) = parse_windows_relative_path(
         rest,
         start=prefix.char_length(),
@@ -177,7 +176,7 @@ pub fn Path::parse(path : String) -> Path raise PathError {
       ) as prefix,
       rest
     ) => {
-      // TODO: check hostname and shared_folder
+      // Warning: won't check the hostname and shared_folder here
       let (directory, file) = parse_windows_relative_path(
         rest,
         start=prefix.char_length(),
@@ -196,7 +195,7 @@ pub fn Path::parse(path : String) -> Path raise PathError {
       ("\\\\" ("[^\\]+" as hostname) "\\" ("[^\\]+" as shared_folder) "\\") as prefix,
       rest
     ) => {
-      // TODO: check hostname and shared_folder
+      // Warning: won't check the hostname and shared_folder here
       let (directory, file) = parse_windows_relative_path(
         rest,
         start=prefix.char_length(),
