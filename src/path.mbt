@@ -104,7 +104,7 @@ fn parse_unix_relative_path(
 
 ///|
 fn win_path(
-  prefix? : WinPrefix,
+  prefix? : WinPrefix = None,
   directory? : WinDirectory = [],
   file? : WinFile,
 ) -> Path {
@@ -449,7 +449,7 @@ pub impl PlatformPath for UnixPathComponent with from(s) {
 
 ///|
 pub fn WinPath::new(
-  prefix? : WinPrefix,
+  prefix? : WinPrefix = None,
   directory~ : WinDirectory,
   file? : WinFile,
 ) -> WinPath {
@@ -493,12 +493,12 @@ pub fn WinPath::is_absolute(self : WinPath) -> Bool {
 
 ///|
 pub fn WinPath::is_relative(self : WinPath) -> Bool {
-  self.prefix is (Some(Root) | None)
+  self.prefix is ((Root) | None)
 }
 
 ///|
 pub fn WinPath::is_root_path(self : WinPath) -> Bool {
-  self.prefix is Some(_)
+  !(self.prefix is None)
 }
 
 ///|
@@ -555,8 +555,7 @@ pub fn Path::file(self : Path) -> File[String]? {
 ///|
 pub fn Path::prefix(self : Path) -> String {
   match self {
-    WPath({ prefix: Some(prefix), .. }) => prefix.to_string()
-    WPath({ prefix: None, .. }) => ""
+    WPath({ prefix: (prefix), .. }) => prefix.to_string()
     UPath({ is_absolute: true, .. }) => "/"
     UPath({ is_absolute: false, .. }) => ""
   }

@@ -9,7 +9,7 @@ pub(all) enum Path {
 /// [Microsoft Naming Files, Paths, and Namespaces](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file)
 /// [Microsoft Maximum Path Length Limitation](https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation)
 pub struct WinPath {
-  prefix : WinPrefix?
+  prefix : WinPrefix
   directory : WinDirectory
   file : WinFile?
 } derive(ToJson, Hash, Eq)
@@ -79,6 +79,7 @@ pub(all) enum WinPrefix {
   ///
   /// Warning: this letter is case-insensitive.
   VolumeLetter(Char)
+  None
 } derive(ToJson, Hash, Eq)
 
 ///|
@@ -167,5 +168,58 @@ fn is_windows_reserved_character(ch : Char) -> Bool {
     | '\u0000'
     | '\u0001'..='\u001F' => true
     _ => false
+  }
+}
+
+///|
+struct PathBuilder {
+  prefix : WinPrefix?
+  is_absolute : Bool
+  directory : Array[String]
+  mut basename : String?
+  mut extension : String?
+}
+
+///|
+pub fn PathBuilder::from_path(path : Path) -> PathBuilder {
+  match path {
+    UPath(path) => {
+      let prefix = Option::None
+      let is_absolute = path.is_absolute()
+      let directory = path.directory[:]
+        .iter()
+        .map(IsString::to_string)
+        .collect()
+      let mut basename : String? = None
+      let mut extension : String? = None
+      match path.file {
+        Some({ base, extension: Some(UnixPathComponent(ext)) }) => {
+          basename = Some(base.0)
+          extension = Some(ext)
+        }
+        Some({ base, extension: None }) => basename = Some(base.0)
+        _ => ()
+      }
+      PathBuilder::{ prefix, is_absolute, directory, basename, extension }
+    }
+    WPath(path) => {
+      let prefix = Some(path.prefix)
+      let is_absolute = path.is_absolute()
+      let directory = path.directory[:]
+        .iter()
+        .map(IsString::to_string)
+        .collect()
+      let mut basename : String? = None
+      let mut extension : String? = None
+      match path.file {
+        Some({ base, extension: Some(WinPathComponent(ext)) }) => {
+          basename = Some(base.0)
+          extension = Some(ext)
+        }
+        Some({ base, extension: None }) => basename = Some(base.0)
+        _ => ()
+      }
+      PathBuilder::{ prefix, is_absolute, directory, basename, extension }
+    }
   }
 }

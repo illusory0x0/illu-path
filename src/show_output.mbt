@@ -121,15 +121,14 @@ pub impl Show for WinPrefix with output(self, logger) {
       logger.write_char(letter)
       logger.write_string(ColonBackslash)
     }
+    None => ()
   }
 }
 
 ///|
 pub impl Show for WinPath with output(self, logger) {
   let { prefix, directory, file } = self
-  if prefix is Some(prefix) {
-    logger.write_object(prefix)
-  }
+  logger.write_object(prefix)
   for component in directory {
     logger.write_object(component)
     logger.write_char(BackSlash)
