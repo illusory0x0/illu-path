@@ -196,3 +196,8 @@ test "Windows inner path normalization for backslashes" {
   let path = Path::parse(".\\a\\\\b\\\\\\\\c")
   inspect(path, content="a\\b\\c")
 }
+
+test "Windows backslashes normalization" {
+  let path = Path::parse("C:\\\\\\\\a\\b")
+  inspect(path, content="C:\\a\\b")
+}
