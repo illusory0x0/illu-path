@@ -9,7 +9,9 @@ fn parse_windows_relative_path(
   let mut start = start
   let file : WinFile? = for {
     lexmatch rest with longest {
-      ((("[^\\]+" as s) "\\") as all, r) => {
+      // pattern: <path_component><backslashes>
+      // backslashes elimination
+      ((("[^\\]+" as s) "(\\)+") as all, r) => {
         match s {
           "." => ()
           ".." =>
@@ -27,6 +29,7 @@ fn parse_windows_relative_path(
         start += all.char_length()
         rest = r
       }
+      // pattern: <dot-dot>
       "\.\." => {
         match (directory.pop(), root_eliminate) {
           (Some(WinPathComponent("..")), _) => {
@@ -39,6 +42,7 @@ fn parse_windows_relative_path(
         }
         break None
       }
+      // pattern: <dot>
       "\." => break None
       (("[^\\]+" as base) "\." ("[^.\\]+" as extension)) =>
         break Some(WinFile::new(base~, extension~))
@@ -61,7 +65,9 @@ fn parse_unix_relative_path(
   let mut start = start
   let file : UnixFile? = for {
     lexmatch rest with longest {
-      ((("[^/]+" as s) "/") as all, r) => {
+      // pattern: <path_component><slashes>
+      // slashes elimination
+      ((("[^/]+" as s) "(/)+") as all, r) => {
         match s {
           "." => ()
           ".." =>
@@ -79,6 +85,7 @@ fn parse_unix_relative_path(
         start += all.char_length()
         rest = r
       }
+      // pattern: <dot-dot>
       "\.\." => {
         match (directory.pop(), root_eliminate) {
           (Some(UnixPathComponent("..")), _) => {
@@ -91,6 +98,7 @@ fn parse_unix_relative_path(
         }
         break None
       }
+      // pattern: <dot>
       "\." => break None
       (("[^/]+" as base) "\." ("[^/]+" as extension)) =>
         break Some(UnixFile::new(base~, extension~))
