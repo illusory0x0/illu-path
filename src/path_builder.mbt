@@ -121,3 +121,13 @@ pub fn PathBuilder::set_file(
     }
   }
 }
+
+///|
+pub fn PathBuilder::copy(self : PathBuilder) -> PathBuilder {
+  match self {
+    WPathBuilder(prefix~, directory~, basename~, extension~) =>
+      WPathBuilder(prefix~, directory=directory.copy(), basename~, extension~)
+    UPathBuilder(prefix~, directory~, basename~, extension~) =>
+      UPathBuilder(prefix~, directory=directory.copy(), basename~, extension~)
+  }
+}

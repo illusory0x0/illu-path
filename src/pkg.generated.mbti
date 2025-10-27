@@ -77,6 +77,7 @@ impl ToJson for Path
 
 type PathBuilder
 fn PathBuilder::add_directory(Self, StringView) -> Unit raise PathError
+fn PathBuilder::copy(Self) -> Self
 fn PathBuilder::from_path(Path) -> Self
 fn PathBuilder::output(Self, &Logger) -> Unit // from trait `Show`
 fn PathBuilder::set_basename(Self, StringView) -> Unit raise PathError
