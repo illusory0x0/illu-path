@@ -169,35 +169,35 @@ pub impl Show for Path with output(self, logger) {
 ///|
 pub impl Show for PathBuilder with output(self, logger) {
   match self {
-    { prefix: Some(prefix), directory, basename, extension, .. } => {
-      // windows style
-      logger.write_object(prefix)
-      for component in directory {
-        logger.write_string(component)
-        logger.write_char(BackSlash)
+    UPathBuilder(prefix~, directory~, basename~, extension~) => {
+      match prefix {
+        Root => logger.write_char(Slash)
+        SlashSlash => logger.write_string("//")
+        None => ()
       }
-      if basename is Some(b) {
-        logger.write_string(b)
+      for component in directory {
+        logger.write_object(component)
+        logger.write_char(Slash)
+      }
+      if basename is Some(base) {
+        logger.write_object(base)
         if extension is Some(ext) {
-          logger.write_char('.')
-          logger.write_string(ext)
+          logger.write_string(".")
+          logger.write_object(ext)
         }
       }
     }
-    { prefix: None, is_absolute, directory, basename, extension } => {
-      // unix style
-      if is_absolute {
-        logger.write_char(Slash)
-      }
+    WPathBuilder(prefix~, directory~, basename~, extension~) => {
+      logger.write_object(prefix)
       for component in directory {
-        logger.write_string(component)
-        logger.write_char(Slash)
+        logger.write_object(component)
+        logger.write_char(BackSlash)
       }
-      if basename is Some(b) {
-        logger.write_string(b)
+      if basename is Some(base) {
+        logger.write_object(base)
         if extension is Some(ext) {
-          logger.write_char('.')
-          logger.write_string(ext)
+          logger.write_string(".")
+          logger.write_object(ext)
         }
       }
     }

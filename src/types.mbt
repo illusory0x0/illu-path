@@ -189,103 +189,73 @@ fn is_windows_reserved_character(ch : Char) -> Bool {
 }
 
 ///|
-struct PathBuilder {
-  // FIXME: consider use enum for different prefix to handle windows/unix path more safely
-  prefix : WinPrefix?
-  is_absolute : Bool
-  directory : Array[String]
-  mut basename : String?
-  mut extension : String?
+enum PathBuilder {
+  WPathBuilder(
+    prefix~ : WinPrefix,
+    directory~ : Array[WinPathComponent],
+    mut basename~ : WinPathComponent?,
+    mut extension~ : WinPathComponent?
+  )
+  UPathBuilder(
+    prefix~ : UnixPrefix,
+    directory~ : Array[UnixPathComponent],
+    mut basename~ : UnixPathComponent?,
+    mut extension~ : UnixPathComponent?
+  )
 }
 
 ///|
 pub fn PathBuilder::from_path(path : Path) -> PathBuilder {
   match path {
-    UPath(path) => {
-      let prefix = Option::None
-      let is_absolute = path.is_absolute()
-      let directory = path.directory[:]
-        .iter()
-        .map(IsString::to_string)
-        .collect()
-      let mut basename : String? = None
-      let mut extension : String? = None
-      match path.file {
-        Some({ base, extension: Some(UnixPathComponent(ext)) }) => {
-          basename = Some(base.0)
+    UPath({ prefix, directory, file }) => {
+      let directory = Array::from_fixed_array(directory.0)
+      let mut basename = Option::None
+      let mut extension = Option::None
+      match file {
+        None => ()
+        Some({ base, extension: Some(ext) }) => {
+          basename = Some(base)
           extension = Some(ext)
         }
-        Some({ base, extension: None }) => basename = Some(base.0)
-        _ => ()
+        Some({ base, extension: None }) => basename = Some(base)
       }
-      PathBuilder::{ prefix, is_absolute, directory, basename, extension }
+      PathBuilder::UPathBuilder(prefix~, directory~, basename~, extension~)
     }
-    WPath(path) => {
-      let prefix = Some(path.prefix)
-      let is_absolute = path.is_absolute()
-      let directory = path.directory[:]
-        .iter()
-        .map(IsString::to_string)
-        .collect()
-      let mut basename : String? = None
-      let mut extension : String? = None
-      match path.file {
-        Some({ base, extension: Some(WinPathComponent(ext)) }) => {
-          basename = Some(base.0)
+    WPath({ prefix, directory, file }) => {
+      let directory = Array::from_fixed_array(directory.0)
+      let mut basename = Option::None
+      let mut extension = Option::None
+      match file {
+        None => ()
+        Some({ base, extension: Some(ext) }) => {
+          basename = Some(base)
           extension = Some(ext)
         }
-        Some({ base, extension: None }) => basename = Some(base.0)
-        _ => ()
+        Some({ base, extension: None }) => basename = Some(base)
       }
-      PathBuilder::{ prefix, is_absolute, directory, basename, extension }
+      PathBuilder::WPathBuilder(prefix~, directory~, basename~, extension~)
     }
   }
 }
 
 ///|
 pub fn PathBuilder::to_path(self : PathBuilder) -> Path {
-  match self.prefix {
-    Some(prefix) => {
-      // windows path
-      let components : Array[WinPathComponent] = self.directory[:]
-        .iter()
-        .map(x => WinPathComponent(x))
-        .collect()
-      let directory = Directory(FixedArray::from_array(components))
-      let file : WinFile? = match self.basename {
-        Some(b) => {
-          let ext : WinPathComponent? = match self.extension {
-            Some(e) => Some(WinPathComponent(e))
-            None => None
-          }
-          Some(File::{ base: WinPathComponent(b), extension: ext })
-        }
+  match self {
+    WPathBuilder(prefix~, directory~, basename~, extension~) => {
+      let directory : Directory[_] = FixedArray::from_array(directory)
+      let file = match basename {
+        Some(base) => Some(File::{ base, extension })
         None => None
       }
-      WPath(WinPath::new(prefix~, directory~, file?))
+      Path::WPath({ prefix, directory, file })
     }
-    None => {
-      // unix path
-      let components : Array[UnixPathComponent] = self.directory[:]
-        .iter()
-        .map(x => UnixPathComponent(x))
-        .collect()
-      let directory = Directory(FixedArray::from_array(components))
-      let file : UnixFile? = match self.basename {
-        Some(b) => {
-          let ext : UnixPathComponent? = match self.extension {
-            Some(e) => Some(UnixPathComponent(e))
-            None => None
-          }
-          Some(File::{ base: UnixPathComponent(b), extension: ext })
-        }
+    UPathBuilder(prefix~, directory~, basename~, extension~) => {
+      let directory : Directory[_] = FixedArray::from_array(directory)
+      let file = match basename {
+        Some(base) => Some(File::{ base, extension })
         None => None
       }
-      if self.is_absolute {
-        UPath(UnixPath::new(prefix=Root, directory~, file?))
-      } else {
-        UPath(UnixPath::new(prefix=None, directory~, file?))
-      }
+      Path::UPath({ prefix, directory, file })
     }
   }
 }
@@ -296,25 +266,20 @@ pub fn PathBuilder::add_directory(
   self : PathBuilder,
   directory : StringView,
 ) -> Unit raise PathError {
-  match self.prefix {
-    Some(_) => {
-      // windows path
-      // If there is a basename (filename) remove it, then push the new directory
-      if self.basename is Some(_) {
-        self.basename = None
-        self.extension = None
+  match self {
+    WPathBuilder(_) as path => {
+      if path.basename is Some(_) {
+        path.basename = None
+        path.extension = None
       }
-      let _comp = WinPathComponent::from(directory, start=0)
-      self.directory.push(_comp.0)
+      path.directory.push(PlatformPath::from(directory))
     }
-    None => {
-      // unix path
-      if self.basename is Some(_) {
-        self.basename = None
-        self.extension = None
+    UPathBuilder(_) as path => {
+      if path.basename is Some(_) {
+        path.basename = None
+        path.extension = None
       }
-      let _comp = UnixPathComponent::from(directory, start=0)
-      self.directory.push(_comp.0)
+      path.directory.push(PlatformPath::from(directory))
     }
   }
 }
@@ -324,17 +289,11 @@ pub fn PathBuilder::set_basename(
   self : PathBuilder,
   basename : StringView,
 ) -> Unit raise PathError {
-  match self.prefix {
-    Some(_) => {
-      // windows path
-      let comp = WinPathComponent::from(basename, start=0)
-      self.basename = Some(comp.0)
-    }
-    None => {
-      // unix path
-      let comp = UnixPathComponent::from(basename, start=0)
-      self.basename = Some(comp.0)
-    }
+  match self {
+    UPathBuilder(_) as path =>
+      path.basename = Some(PlatformPath::from(basename))
+    WPathBuilder(_) as path =>
+      path.basename = Some(PlatformPath::from(basename))
   }
 }
 
@@ -343,26 +302,11 @@ pub fn PathBuilder::set_extension(
   self : PathBuilder,
   extension : StringView,
 ) -> Unit raise PathError {
-  match self.prefix {
-    Some(_) => {
-      // windows path
-      // validate extension (must not contain '.') using WinPathComponent rules
-      for i, ch in extension {
-        if ch == '.' {
-          raise PathError(
-            start=i,
-            message="Extension must not contain '.' character.",
-          )
-        }
-      }
-      let comp = WinPathComponent::from(extension, start=0)
-      self.extension = Some(comp.0)
-    }
-    None => {
-      // unix path
-      let comp = UnixPathComponent::from(extension, start=0)
-      self.extension = Some(comp.0)
-    }
+  match self {
+    UPathBuilder(_) as path =>
+      path.extension = Some(PlatformPath::from(extension))
+    WPathBuilder(_) as path =>
+      path.extension = Some(PlatformPath::from(extension))
   }
 }
 
@@ -372,6 +316,14 @@ pub fn PathBuilder::set_file(
   base~ : StringView,
   extension~ : StringView,
 ) -> Unit raise PathError {
-  self.set_basename(base)
-  self.set_extension(extension)
+  match self {
+    UPathBuilder(_) as path => {
+      path.basename = Some(PlatformPath::from(base))
+      path.extension = Some(PlatformPath::from(extension))
+    }
+    WPathBuilder(_) as path => {
+      path.basename = Some(PlatformPath::from(base))
+      path.extension = Some(PlatformPath::from(extension))
+    }
+  }
 }
