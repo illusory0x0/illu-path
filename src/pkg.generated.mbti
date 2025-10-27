@@ -87,17 +87,17 @@ fn PathBuilder::to_string(Self) -> String // from trait `Show`
 impl Show for PathBuilder
 
 pub struct UnixPath {
-  is_absolute : Bool
+  prefix : UnixPrefix
   directory : Directory[UnixPathComponent]
   file : File[UnixPathComponent]?
 }
 fn UnixPath::equal(Self, Self) -> Bool // from trait `Eq`
 fn UnixPath::hash(Self) -> Int // from trait `Hash`
 fn UnixPath::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
-#alias(is_root_path)
 fn UnixPath::is_absolute(Self) -> Bool
 fn UnixPath::is_relative(Self) -> Bool
-fn UnixPath::new(is_absolute? : Bool, directory~ : Directory[UnixPathComponent], file? : File[UnixPathComponent]) -> Self
+fn UnixPath::is_root_path(Self) -> Bool
+fn UnixPath::new(prefix? : UnixPrefix, directory~ : Directory[UnixPathComponent], file? : File[UnixPathComponent]) -> Self
 #deprecated
 fn UnixPath::op_equal(Self, Self) -> Bool // from trait `Eq`
 fn UnixPath::output(Self, &Logger) -> Unit // from trait `Show`
@@ -123,6 +123,21 @@ impl Eq for UnixPathComponent
 impl Hash for UnixPathComponent
 impl Show for UnixPathComponent
 impl ToJson for UnixPathComponent
+
+pub(all) enum UnixPrefix {
+  Root
+  SlashSlash
+  None
+}
+fn UnixPrefix::equal(Self, Self) -> Bool // from trait `Eq`
+fn UnixPrefix::hash(Self) -> Int // from trait `Hash`
+fn UnixPrefix::hash_combine(Self, Hasher) -> Unit // from trait `Hash`
+#deprecated
+fn UnixPrefix::op_equal(Self, Self) -> Bool // from trait `Eq`
+fn UnixPrefix::to_json(Self) -> Json // from trait `ToJson`
+impl Eq for UnixPrefix
+impl Hash for UnixPrefix
+impl ToJson for UnixPrefix
 
 pub struct WinPath {
   prefix : WinPrefix

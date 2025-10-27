@@ -143,9 +143,11 @@ const Slash = '/'
 
 ///|
 pub impl Show for UnixPath with output(self, logger) {
-  let { is_absolute, directory, file } = self
-  if is_absolute {
-    logger.write_char(Slash)
+  let { prefix, directory, file } = self
+  match prefix {
+    Root => logger.write_char(Slash)
+    SlashSlash => logger.write_string("//")
+    None => ()
   }
   for component in directory {
     logger.write_object(component)
@@ -207,13 +209,13 @@ test "unix path" {
   let path = UnixPath::new(directory=Directory::new(["username", ".moon"]))
   inspect(path, content="username/.moon/")
   let path = UnixPath::new(
-    is_absolute=true,
+    prefix=Root,
     directory=Directory::new(["home", "username", ".moon"]),
   )
   inspect(path, content="/home/username/.moon/")
   let path = UnixPath::new(directory=Directory::new([]))
   inspect(path, content="")
-  let path = UnixPath::new(is_absolute=true, directory=Directory::new([]))
+  let path = UnixPath::new(prefix=Root, directory=Directory::new([]))
   inspect(path, content="/")
 }
 

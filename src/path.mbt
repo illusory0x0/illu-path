@@ -309,7 +309,7 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
         start=1,
         root_eliminate=true,
       )
-      UPath(UnixPath::new(is_absolute=true, directory~, file?))
+      UPath(UnixPath::new(prefix=Root, directory~, file?))
     }
     _ => raise PathError(start=0, message="Invalid path format")
   }
@@ -458,11 +458,11 @@ pub fn WinPath::new(
 
 ///|
 pub fn UnixPath::new(
-  is_absolute? : Bool = false,
+  prefix? : UnixPrefix = None,
   directory~ : UnixDirectory,
   file? : UnixFile,
 ) -> UnixPath {
-  UnixPath::{ is_absolute, directory, file }
+  UnixPath::{ prefix, directory, file }
 }
 
 ///|
@@ -502,14 +502,18 @@ pub fn WinPath::is_root_path(self : WinPath) -> Bool {
 }
 
 ///|
-#alias(is_root_path)
 pub fn UnixPath::is_absolute(self : UnixPath) -> Bool {
-  self.is_absolute
+  self.prefix is (Root | SlashSlash)
 }
 
 ///|
 pub fn UnixPath::is_relative(self : UnixPath) -> Bool {
-  !self.is_absolute
+  !self.is_absolute()
+}
+
+///|
+pub fn UnixPath::is_root_path(self : UnixPath) -> Bool {
+  self.prefix is Root
 }
 
 ///|
@@ -531,7 +535,7 @@ pub fn Path::is_relative(self : Path) -> Bool {
 ///|
 pub fn Path::is_root_path(self : Path) -> Bool {
   match self {
-    UPath(path) => path.is_absolute()
+    UPath(path) => path.is_root_path()
     WPath(path) => path.is_root_path()
   }
 }
@@ -556,8 +560,9 @@ pub fn Path::file(self : Path) -> File[String]? {
 pub fn Path::prefix(self : Path) -> String {
   match self {
     WPath({ prefix, .. }) => prefix.to_string()
-    UPath({ is_absolute: true, .. }) => "/"
-    UPath({ is_absolute: false, .. }) => ""
+    UPath({ prefix: Root, .. }) => "/"
+    UPath({ prefix: SlashSlash, .. }) => "//"
+    UPath({ prefix: None, .. }) => ""
   }
 }
 

@@ -104,7 +104,7 @@ pub(all) enum UnixPrefix {
 /// 
 /// 
 pub struct UnixPath {
-  is_absolute : Bool
+  prefix : UnixPrefix
   directory : UnixDirectory
   file : UnixFile?
 } derive(ToJson, Hash, Eq)
@@ -190,6 +190,7 @@ fn is_windows_reserved_character(ch : Char) -> Bool {
 
 ///|
 struct PathBuilder {
+  // FIXME: consider use enum for diffrent prefix to handle windows/unix path more safely
   prefix : WinPrefix?
   is_absolute : Bool
   directory : Array[String]
@@ -280,7 +281,11 @@ pub fn PathBuilder::to_path(self : PathBuilder) -> Path {
         }
         None => None
       }
-      UPath(UnixPath::new(is_absolute=self.is_absolute, directory~, file?))
+      if self.is_absolute {
+        UPath(UnixPath::new(prefix=Root, directory~, file?))
+      } else {
+        UPath(UnixPath::new(prefix=None, directory~, file?))
+      }
     }
   }
 }
