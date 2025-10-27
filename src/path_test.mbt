@@ -212,3 +212,19 @@ test "Unix slashes normalization" {
   let path = Path::parse(".//a/b//c/e////d")
   inspect(path, content="a/b/c/e/d")
 }
+
+///|
+test "edge cases" {
+  let path = Path::parse("/")
+  inspect(path, content="/")
+  let path = Path::parse("\\")
+  inspect(path, content="\\")
+  let path = Path::parse(".\\")
+  inspect(path)
+  let path = Path::parse("./")
+  inspect(path)
+  let path = Path::parse("//")
+  inspect(path, content="//")
+  let path = Path::parse("///")
+  inspect(path, content="/")
+}

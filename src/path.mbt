@@ -164,10 +164,6 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
     // backslashes elimination
     (("[a-zA-Z]" as letter) ":(\\)+") => win_path(prefix=VolumeLetter(letter))
     // this pattern exect match the whole path string
-    // pattern: `\.\`
-    //
-    // backslashes elimination
-    "\.(\\)+" => win_path()
     // pattern: `\\?\` followed by relative path components
     ("\\\\\?\\" "\\|\.\.|\.") =>
       raise PathError(
@@ -365,7 +361,16 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
       )
       UPath(UnixPath::new(prefix=Root, directory~, file?))
     }
-    // TODO: add Unix slash-slash `//<rest_of_path>` pattern support
+    // syntax: `//<rest_of_path>
+    // 
+    ("//", rest) => {
+      let (directory, file) = parse_unix_relative_path(
+        rest,
+        start=1,
+        root_eliminate=true,
+      )
+      UPath(UnixPath::new(prefix=SlashSlash, directory~, file?))
+    }
     _ => raise PathError(start=0, message="Invalid path format")
   }
 }
