@@ -184,3 +184,15 @@ test "file extension" {
   @json.inspect(file, content={ "base": "README.mbt", "extension": "md" })
   inspect(path, content="README.mbt.md")
 }
+
+///|
+test "Unix inner path normalization for slashes" {
+  let path = Path::parse("./a//b////c")
+  inspect(path, content="a/b/c")
+}
+
+///|
+test "Windows inner path normalization for backslashes" {
+  let path = Path::parse(".\\a\\\\b\\\\\\\\c")
+  inspect(path, content="a\\b\\c")
+}
