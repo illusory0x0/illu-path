@@ -123,10 +123,15 @@ fn win_path(
 /// Parsing path from string used prefix based detection to determine the path format style (Windows/Unix)
 pub fn Path::parse(path : StringView) -> Path raise PathError {
   lexmatch path with longest {
+    //-----------------------------------------------------------------------------
+    // without <rest_of_path>
+    //-----------------------------------------------------------------------------
     // this pattern exect match the whole path string
+    // pattern: `\\?\<symlink>`
     ("\\\\\?\\" ("[^\\]+" as symlink)) =>
       win_path(prefix=VerbatimSymlink(symlink=symlink.to_string()))
     // this pattern exect match the whole path string
+    // pattern: `\\?\UNC\<hostname>\<shared_folder>`
     ("\\\\\?UNC\\" ("[^\\]+" as hostname) "\\" ("[^\\]+" as shared_folder)) =>
       win_path(
         prefix=VerbatimUNC(
@@ -135,6 +140,7 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
         ),
       )
     // this pattern exect match the whole path string
+    // pattern: `\\<hostname>\<shared_folder>`
     ("\\\\" ("[^\\]+" as hostname) "\\" ("[^\\]+" as shared_folder)) =>
       win_path(
         prefix=UNC(
@@ -143,33 +149,42 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
         ),
       )
     // this pattern exect match the whole path string
+    // pattern: `\\.\<device>`
     ("\\\\\.\\" ("[^\\]+" as device)) =>
       win_path(prefix=DeviceNS(device=device.to_string()))
     // this pattern exect match the whole path string
-    ("\\\\\?\\" ("[a-zA-Z]" as letter) ":\\") =>
+    // pattern: `\\?\<letter>:\`
+    //
+    // backslashes elimination
+    ("\\\\\?\\" ("[a-zA-Z]" as letter) ":(\\)+") =>
       win_path(prefix=VerbatimVolumeLetter(letter))
     // this pattern exect match the whole path string
-    (("[a-zA-Z]" as letter) ":\\") => win_path(prefix=VolumeLetter(letter))
-    "\.\\" =>
-      // this pattern exect match the whole path string
-      win_path()
+    // pattern: `<letter>:\`
+    // 
+    // backslashes elimination
+    (("[a-zA-Z]" as letter) ":(\\)+") => win_path(prefix=VolumeLetter(letter))
+    // this pattern exect match the whole path string
+    // pattern: `\.\`
+    //
+    // backslashes elimination
+    "\.(\\)+" => win_path()
+    // pattern: `\\?\` followed by relative path components
     ("\\\\\?\\" "\\|\.\.|\.") =>
       raise PathError(
         start=0,
         message="Invalid Windows path: Verbatim prefix can use for relative path",
       )
     // this pattern exect match the whole path string
+    // pattern: `\\?\Volume{<guid>}`
     ("\\\\\?\\Volume[{]" ("[^}]+" as guid) "[}]") =>
       win_path(prefix=VerbatimVolumeGUID(guid.to_string()))
-    // this pattern exect match the whole path string
-    ("\\\\\?UNC\\" ("[^\\]+" as hostname) "\\" ("[^\\]+" as shared_folder) "\\") =>
-      win_path(
-        prefix=VerbatimUNC(
-          hostname=hostname.to_string(),
-          shared_folder=shared_folder.to_string(),
-        ),
-      )
-    (("\\\\\?\\" ("[^\\]+" as symlink) "\\") as prefix, rest) => {
+    //-----------------------------------------------------------------------------
+    // with <rest_of_path>
+    //-----------------------------------------------------------------------------
+    // pattern: `\\?\<symlink>\<rest_of_path>`
+    //
+    // backslashes elimination
+    (("\\\\\?\\" ("[^\\]+" as symlink) "(\\)+") as prefix, rest) => {
       // Warning: won't check the symlink name here
       let (directory, file) = parse_windows_relative_path(
         rest,
@@ -182,13 +197,16 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
         file?,
       )
     }
+    // pattern: `\\?\UNC\<hostname>\<shared_folder>\<rest_of_path>`
+    //
+    // backslashes elimination
     (
       (
         "\\\\\?UNC\\"
         ("[^\\]+" as hostname)
         "\\"
         ("[^\\]+" as shared_folder)
-        "\\"
+        "(\\)+"
       ) as prefix,
       rest
     ) => {
@@ -207,8 +225,11 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
         file?,
       )
     }
+    // pattern: `\\<hostname>\<shared_folder>\<rest_of_path>`
+    //
+    // backslashes elimination
     (
-      ("\\\\" ("[^\\]+" as hostname) "\\" ("[^\\]+" as shared_folder) "\\") as prefix,
+      ("\\\\" ("[^\\]+" as hostname) "\\" ("[^\\]+" as shared_folder) "(\\)+") as prefix,
       rest
     ) => {
       // Warning: won't check the hostname and shared_folder here
@@ -226,6 +247,7 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
         file?,
       )
     }
+    // pattern: `\\?\Volume{<guid>}<rest_of_path>`
     (("\\\\\?\\Volume[{]" ("[^}]+" as guid) "[}]") as prefix, rest) => {
       let (directory, file) = parse_windows_relative_path(
         rest,
@@ -234,8 +256,11 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
       )
       win_path(prefix=VerbatimVolumeGUID(guid.to_string()), directory~, file?)
     }
-    (("\\\\\.\\" ("[^\\]+" as device) "\\") as prefix, rest) => {
-      // check the device 
+    // pattern: `\\.\<device>\<rest_of_path>`
+    //
+    // backslashes elimination
+    (("\\\\\.\\" ("[^\\]+" as device) "(\\)+") as prefix, rest) => {
+      // check the device name here
       let (directory, file) = parse_windows_relative_path(
         rest,
         start=prefix.char_length(),
@@ -243,7 +268,10 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
       )
       win_path(prefix=DeviceNS(device=device.to_string()), directory~, file?)
     }
-    (("\\\\\?\\" ("[a-zA-Z]" as letter) ":\\") as prefix, rest) => {
+    // pattern: `\\?\<letter>:\<rest_of_path>`
+    //
+    // backslashes elimination
+    (("\\\\\?\\" ("[a-zA-Z]" as letter) ":(\\)+") as prefix, rest) => {
       let (directory, file) = parse_windows_relative_path(
         rest,
         start=prefix.char_length(),
@@ -251,12 +279,16 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
       )
       win_path(prefix=VerbatimVolumeLetter(letter), directory~, file?)
     }
+    // pattern: `\\?\` followed by relative path components
     ("\\\\\?\\" "\\|\.\.|\.", _) =>
       raise PathError(
         start=0,
         message="Invalid Windows path: Verbatim prefix can use for relative path",
       )
-    ((("[a-zA-Z]" as letter) ":\\") as prefix, rest) => {
+    // pattern: `<letter>:\<rest_of_path>`
+    //
+    // backslashes elimination
+    ((("[a-zA-Z]" as letter) ":(\\)+") as prefix, rest) => {
       let (directory, file) = parse_windows_relative_path(
         rest,
         start=prefix.char_length(),
@@ -265,7 +297,9 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
       win_path(prefix=VolumeLetter(letter), directory~, file?)
     }
     // current path 
-    ("\.\\" as prefix, rest) => {
+    // syntax: `.\<rest_of_path>`
+    // backslashes elimination
+    ("\.(\\)+" as prefix, rest) => {
       let (directory, file) = parse_windows_relative_path(
         rest,
         start=prefix.char_length(),
@@ -273,7 +307,9 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
       )
       win_path(directory~, file?)
     }
-    ("[^\\]+\\", _) => {
+    // syntax: `<path_component>\<rest_of_path>`
+    // backslashes elimination
+    ("[^\\]+(\\)+", _) => {
       let (directory, file) = parse_windows_relative_path(
         path,
         start=0,
@@ -282,8 +318,10 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
       win_path(directory~, file?)
     }
 
-    // current path 
-    ("\./" as prefix, rest) => {
+    // current path
+    // syntax: `./<rest_of_path>`
+    // slashes elimination 
+    ("\./+" as prefix, rest) => {
       let (directory, file) = parse_unix_relative_path(
         rest,
         start=prefix.char_length(),
@@ -291,7 +329,9 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
       )
       UPath(UnixPath::new(directory~, file?))
     }
-    ("[^/]+/", _) => {
+    // syntax: `<path_component>/<rest_of_path>`
+    // slashes elimination
+    ("[^/]+/+", _) => {
       let (directory, file) = parse_unix_relative_path(
         path,
         start=0,
@@ -301,6 +341,9 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
     }
 
     // root path but without derive letter 
+    // syntax: `\<rest_of_path>`
+    // Warning: here doesn't support backslash elimination, 
+    //          because prefix backslashes elimination is conflicted with UNC path format
     ("\\", rest) => {
       let (directory, file) = parse_windows_relative_path(
         rest,
@@ -311,7 +354,10 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
     }
 
     // root path 
-    ("/", rest) => {
+    // syntax: `/<rest_of_path>` or `/{3,}<rest_of_path>`
+    //
+    // slashes elimination
+    ("/|/{3,}", rest) => {
       let (directory, file) = parse_unix_relative_path(
         rest,
         start=1,
@@ -319,6 +365,7 @@ pub fn Path::parse(path : StringView) -> Path raise PathError {
       )
       UPath(UnixPath::new(prefix=Root, directory~, file?))
     }
+    // TODO: add Unix slash-slash `//<rest_of_path>` pattern support
     _ => raise PathError(start=0, message="Invalid path format")
   }
 }

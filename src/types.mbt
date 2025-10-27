@@ -190,7 +190,7 @@ fn is_windows_reserved_character(ch : Char) -> Bool {
 
 ///|
 struct PathBuilder {
-  // FIXME: consider use enum for diffrent prefix to handle windows/unix path more safely
+  // FIXME: consider use enum for different prefix to handle windows/unix path more safely
   prefix : WinPrefix?
   is_absolute : Bool
   directory : Array[String]
