@@ -83,6 +83,23 @@ pub(all) enum WinPrefix {
 } derive(ToJson, Hash, Eq)
 
 ///|
+pub(all) enum UnixPrefix {
+  /// Syntax: `/` or `/{3,}`
+  ///
+  /// A pathname consisting of a single <slash> shall resolve to the root directory of the process.
+  Root
+  /// Syntax: `//`
+  ///
+  /// [Posix 4.13 Pathname Resolution](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap04.html#tag_04_13)
+  ///
+  /// > If a pathname begins with two successive <slash> characters, 
+  /// > the first component following the leading <slash> characters may be interpreted in an implementation-defined manner,
+  /// > although more than two leading <slash> characters shall be treated as a single <slash> character.
+  SlashSlash
+  None
+} derive(ToJson, Hash, Eq)
+
+///|
 /// [Posix 4.13 Pathname Resolution](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap04.html#tag_04_13)
 /// 
 /// 
